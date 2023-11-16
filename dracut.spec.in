@@ -89,6 +89,11 @@ Patch58: 0058.patch
 Patch59: 0059.patch
 Patch60: 0060.patch
 
+# Fix for kernel 6.6
+# https://bugzilla.redhat.com/show_bug.cgi?id=2249112
+# https://github.com/dracutdevs/dracut/pull/2481
+Patch61: 2481-remove-microcode-check-based-on-CONFIG_MICROCODE_.patch
+
 Source1: https://www.gnu.org/licenses/lgpl-2.1.txt
 
 BuildRequires: bash
