@@ -350,6 +350,16 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/kernel/postinst.d
 install -m 0755 51-dracut-rescue-postinst.sh $RPM_BUILD_ROOT%{_sysconfdir}/kernel/postinst.d/51-dracut-rescue-postinst.sh
 %endif
 
+%post
+# Fix missing microcode in initramfs
+for initrd in /boot/initramfs-*.img; do
+    if ! cpio -t early_cpio < "$initrd" >/dev/null 2>&1; then
+        kver="${initrd#/boot/initramfs-}"
+        kver="${kver%.img}"
+        dracut -f --kver "$kver"
+    fi
+done
+
 %files
 %if %{with doc}
 %doc README.md HACKING TODO AUTHORS NEWS dracut.html dracut.png dracut.svg
