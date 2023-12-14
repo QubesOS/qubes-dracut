@@ -258,6 +258,16 @@ rm -f $RPM_BUILD_ROOT%{_mandir}/man?/*suse*
 echo 'hostonly="no"' > $RPM_BUILD_ROOT%{dracutlibdir}/dracut.conf.d/02-generic-image.conf
 echo 'dracut_rescue_image="yes"' > $RPM_BUILD_ROOT%{dracutlibdir}/dracut.conf.d/02-rescue.conf
 
+%post
+# Fix missing microcode in initramfs
+for initrd in /boot/initramfs-*.img; do
+    if ! cpio -t early_cpio < "$initrd" >/dev/null 2>&1; then
+        kver="${initrd#/boot/initramfs-}"
+        kver="${kver%.img}"
+        dracut -f --kver "$kver"
+    fi
+done
+
 %files
 %if %{with doc}
 %doc README.md docs/HACKING.md AUTHORS NEWS.md dracut.html docs/dracut.png docs/dracut.svg
