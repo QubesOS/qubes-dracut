@@ -1,0 +1,53 @@
+From d5bfaf58ab2098737bad92008916d39a0ec361db Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Thu, 12 Mar 2020 12:50:08 +0100
+Subject: [PATCH] github actions: use test container directly
+
+---
+ .github/workflows/fedora-30.yml | 6 ++++--
+ .github/workflows/fedora-31.yml | 6 ++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/.github/workflows/fedora-30.yml b/.github/workflows/fedora-30.yml
+index 345ed0d4..1a3d3e8d 100644
+--- a/.github/workflows/fedora-30.yml
++++ b/.github/workflows/fedora-30.yml
+@@ -13,7 +13,9 @@ on:
+ jobs:
+   test:
+     runs-on: ubuntu-latest
+-    #container: quay.io/haraldh/dracut-fedora:30
++    container:
++      image: quay.io/haraldh/dracut-fedora:30
++      options: "--privileged"
+     timeout-minutes: 45
+     strategy:
+       matrix:
+@@ -45,4 +47,4 @@ jobs:
+           fetch-depth: 0
+ 
+       - name: "TEST-${{ matrix.test }}"
+-        run: docker run --privileged -v $(pwd)/:/dracut quay.io/haraldh/dracut-fedora:30 /dracut/fedora-test-github.sh "TEST-${{ matrix.test }}" ${{ matrix.test }}
++        run: ./fedora-test-github.sh "TEST-${{ matrix.test }}" ${{ matrix.test }}
+diff --git a/.github/workflows/fedora-31.yml b/.github/workflows/fedora-31.yml
+index 20ad62c2..aa829df2 100644
+--- a/.github/workflows/fedora-31.yml
++++ b/.github/workflows/fedora-31.yml
+@@ -13,7 +13,9 @@ on:
+ jobs:
+   test:
+     runs-on: ubuntu-latest
+-    #container: quay.io/haraldh/dracut-fedora:30
++    container:
++      image: quay.io/haraldh/dracut-fedora:31
++      options: "--privileged"
+     timeout-minutes: 45
+     strategy:
+       matrix:
+@@ -51,4 +53,4 @@ jobs:
+           fetch-depth: 0
+ 
+       - name: "TEST-${{ matrix.test }}"
+-        run: docker run --privileged -v $(pwd)/:/dracut quay.io/haraldh/dracut-fedora:31 /dracut/fedora-test-github.sh "TEST-${{ matrix.test }}" ${{ matrix.test }}
++        run: ./fedora-test-github.sh "TEST-${{ matrix.test }}" ${{ matrix.test }}
+

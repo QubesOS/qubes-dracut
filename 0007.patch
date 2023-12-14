@@ -1,0 +1,70 @@
+From db9b5851f3bca0844890d529c7560c89ef81b92a Mon Sep 17 00:00:00 2001
+From: Daniel Molkentin <daniel.molkentin@suse.com>
+Date: Wed, 30 Oct 2019 09:30:32 +0100
+Subject: [PATCH] 99base: Remove duplicate nfsroot_to_var from dracut-lib.sh
+
+It already lives in nfs-lib.sh, which is the more correct library scope.
+
+Fixes #17
+---
+ modules.d/95nfs/parse-nfsroot.sh |  1 +
+ modules.d/99base/dracut-lib.sh   | 33 ---------------------------------
+ 2 files changed, 1 insertion(+), 33 deletions(-)
+
+diff --git a/modules.d/95nfs/parse-nfsroot.sh b/modules.d/95nfs/parse-nfsroot.sh
+index f715767b..44a69d48 100755
+--- a/modules.d/95nfs/parse-nfsroot.sh
++++ b/modules.d/95nfs/parse-nfsroot.sh
+@@ -24,6 +24,7 @@
+ #
+ 
+ type getarg >/dev/null 2>&1 || . /lib/dracut-lib.sh
++ . /lib/nfs-lib.sh
+ 
+ # This script is sourced, so root should be set. But let's be paranoid
+ [ -z "$root" ] && root=$(getarg root=)
+diff --git a/modules.d/99base/dracut-lib.sh b/modules.d/99base/dracut-lib.sh
+index 207a2b5c..c53cd13b 100755
+--- a/modules.d/99base/dracut-lib.sh
++++ b/modules.d/99base/dracut-lib.sh
+@@ -579,39 +579,6 @@ else
+     }
+ fi
+ 
+-# root=nfs:[<server-ip>:]<root-dir>[:<nfs-options>]
+-# root=nfs4:[<server-ip>:]<root-dir>[:<nfs-options>]
+-nfsroot_to_var() {
+-    # strip nfs[4]:
+-    local arg="$@:"
+-    nfs="${arg%%:*}"
+-    arg="${arg##$nfs:}"
+-
+-    # check if we have a server
+-    if strstr "$arg" ':/' ; then
+-        server="${arg%%:/*}"
+-        arg="/${arg##*:/}"
+-    fi
+-
+-    path="${arg%%:*}"
+-
+-    # rest are options
+-    options="${arg##$path}"
+-    # strip leading ":"
+-    options="${options##:}"
+-    # strip  ":"
+-    options="${options%%:}"
+-
+-    # Does it really start with '/'?
+-    [ -n "${path%%/*}" ] && path="error";
+-
+-    #Fix kernel legacy style separating path and options with ','
+-    if [ "$path" != "${path#*,}" ] ; then
+-        options=${path#*,}
+-        path=${path%%,*}
+-    fi
+-}
+-
+ # Create udev rule match for a device with its device name, or the udev property
+ # ID_FS_UUID or ID_FS_LABEL
+ #
+

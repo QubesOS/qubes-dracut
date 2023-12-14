@@ -1,0 +1,27 @@
+From 3ba12b22491de49853685bec5bb345e624c119ab Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Wed, 4 Mar 2020 14:39:22 +0100
+Subject: [PATCH] test/TEST-35-ISCSI-MULTI: bump disk space
+
+---
+ test/TEST-35-ISCSI-MULTI/test.sh | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/test/TEST-35-ISCSI-MULTI/test.sh b/test/TEST-35-ISCSI-MULTI/test.sh
+index e96c9c56..740ab918 100755
+--- a/test/TEST-35-ISCSI-MULTI/test.sh
++++ b/test/TEST-35-ISCSI-MULTI/test.sh
+@@ -144,9 +144,9 @@ test_setup() {
+     fi
+ 
+     # Create the blank file to use as a root filesystem
+-    dd if=/dev/null of=$TESTDIR/root.ext3 bs=1M seek=45
+-    dd if=/dev/null of=$TESTDIR/iscsidisk2.img bs=1M seek=45
+-    dd if=/dev/null of=$TESTDIR/iscsidisk3.img bs=1M seek=45
++    dd if=/dev/null of=$TESTDIR/root.ext3 bs=1M seek=90
++    dd if=/dev/null of=$TESTDIR/iscsidisk2.img bs=1M seek=90
++    dd if=/dev/null of=$TESTDIR/iscsidisk3.img bs=1M seek=90
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+

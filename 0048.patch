@@ -1,0 +1,26 @@
+From cb9e6881dde7ec34e11f6f38727602d6d841a04f Mon Sep 17 00:00:00 2001
+From: Derek Hageman <hageman@inthat.cloud>
+Date: Thu, 30 Apr 2020 18:40:13 -0600
+Subject: [PATCH] 90crypt/module-setup.sh: fix force on multiple lines
+
+The first line in crypttab with a "force" option causes all subsequent
+lines to be included as if they also had it set because the variable
+used to track it is not reset between loop iterations.  So fix that by
+just setting it to empty before the check for the force option.
+---
+ modules.d/90crypt/module-setup.sh | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/modules.d/90crypt/module-setup.sh b/modules.d/90crypt/module-setup.sh
+index 3bce2411..e3d6338f 100755
+--- a/modules.d/90crypt/module-setup.sh
++++ b/modules.d/90crypt/module-setup.sh
+@@ -113,6 +113,7 @@ install() {
+             set -- ${luksoptions}
+             IFS="${OLD_IFS}"
+ 
++            forceentry=""
+             while [ $# -gt 0 ]; do
+                 case $1 in
+                     force)
+

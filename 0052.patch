@@ -1,0 +1,34 @@
+From 424f01e2a0ac0b329e68eb63048cf0d6d9c74d37 Mon Sep 17 00:00:00 2001
+From: Kairui Song <kasong@redhat.com>
+Date: Wed, 27 May 2020 22:07:37 +0800
+Subject: [PATCH] 99memstrack: hook script should not call exit
+
+With memstrack module, rd.break may not work because the hook scripts
+are sourced, not executed, so the exit call will make pre-pivot queue
+exit early. See 98dracut-systemd/dracut-pre-pivot.sh, everything after
+"source_hook cleanup" will be ignored.
+
+Replace with return instead.
+
+Credits go to Lukas Nykryn <lnykryn@redhat.com> who helped discover and
+debug this issue.
+
+Signed-off-by: Kairui Song <kasong@redhat.com>
+---
+ modules.d/99memstrack/memstrack-report.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules.d/99memstrack/memstrack-report.sh b/modules.d/99memstrack/memstrack-report.sh
+index 241e8621..3de55bd1 100755
+--- a/modules.d/99memstrack/memstrack-report.sh
++++ b/modules.d/99memstrack/memstrack-report.sh
+@@ -2,7 +2,7 @@
+ . /lib/dracut-lib.sh
+ 
+ if ! [ "$DEBUG_MEM_LEVEL" -ge 4 ]; then
+-    exit 0
++    return 0
+ fi
+ 
+ if type -P systemctl >/dev/null; then
+

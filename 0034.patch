@@ -1,0 +1,24 @@
+From 3b626094bd5f017dee26968ce1531a301bb6218a Mon Sep 17 00:00:00 2001
+From: Daniel Molkentin <dmolkentin@suse.com>
+Date: Tue, 7 Apr 2020 12:27:30 +0200
+Subject: [PATCH] mkinitrd-suse.sh: Fix i586 platform detection
+
+Reference: boo#1168341
+---
+ mkinitrd-suse.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mkinitrd-suse.sh b/mkinitrd-suse.sh
+index db2eb188..708c4e67 100755
+--- a/mkinitrd-suse.sh
++++ b/mkinitrd-suse.sh
+@@ -171,7 +171,7 @@ default_kernel_images() {
+         ppc|ppc64)
+             regex='vmlinux'
+             ;;
+-        i386|x86_64)
++        i?86|x86_64)
+             regex='vmlinuz'
+             ;;
+         arm*)
+

@@ -1,0 +1,29 @@
+From faea4e4ddb10f697590b80f8f17181341c537262 Mon Sep 17 00:00:00 2001
+From: Peter Georg <peter.georg@physik.uni-regensburg.de>
+Date: Tue, 21 Apr 2020 21:34:38 +0200
+Subject: [PATCH] Always pull in machinery to read ifcfg files
+
+So far machinery is only pulled in if the user has not yet included any
+ifcfg files.
+---
+ modules.d/35network-manager/module-setup.sh | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/modules.d/35network-manager/module-setup.sh b/modules.d/35network-manager/module-setup.sh
+index 8fc3114d..ad2a1534 100755
+--- a/modules.d/35network-manager/module-setup.sh
++++ b/modules.d/35network-manager/module-setup.sh
+@@ -47,10 +47,8 @@ install() {
+     fi
+ 
+     # We don't install the ifcfg files from the host automatically.
+-    # But if the user chooses to include them, we pull in the machinery to read them.
+-    if ! [[ -d "$initdir/etc/sysconfig/network-scripts" ]]; then
+-        inst_libdir_file "NetworkManager/$_nm_version/libnm-settings-plugin-ifcfg-rh.so"
+-    fi
++    # But the user might choose to include them, so we pull in the machinery to read them.
++    inst_libdir_file "NetworkManager/$_nm_version/libnm-settings-plugin-ifcfg-rh.so"
+ 
+     _arch=${DRACUT_ARCH:-$(uname -m)}
+ 
+

@@ -1,0 +1,43 @@
+From ff366790a6e30175f243d54c2922a8c781030ede Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Tue, 5 May 2020 19:11:18 +0200
+Subject: [PATCH] 51-dracut-rescue.install: Don't use BLS fragment shipped by
+ kernel package
+
+For the GRUB and zipl bootloaders the BLS fragment that is shipped by the
+kernel package is used, so the same fragment is used for the rescue entry.
+
+But there are cases where this BLS fragment is not suitable. For example,
+if the boot directory is on a btrfs subvolume the path in the linux and
+initrd fiels need to be adjusted with the real path. Otherwise GRUB won't
+be able to read them.
+
+The GRUB and zipl kernel-install plugins already take care of this before
+installing the BLS fragments, so just copy the installed fragment that has
+the updated paths instead of using the BLS shipped by the kernel package.
+
+Resolves: rhbz#1827882
+
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+---
+ 51-dracut-rescue.install | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/51-dracut-rescue.install b/51-dracut-rescue.install
+index b4ed1783..b2b3b9ef 100755
+--- a/51-dracut-rescue.install
++++ b/51-dracut-rescue.install
+@@ -106,7 +106,11 @@ case "$COMMAND" in
+                 echo "initrd     $BOOT_DIR/initrd"
+             } > $LOADER_ENTRY
+         else
+-            cp -aT "${KERNEL_IMAGE%/*}/bls.conf" $LOADER_ENTRY
++            if [[ -e "${BLS_DIR}/${MACHINE_ID}-${KERNEL_VERSION}.conf" ]]; then
++                cp -aT "${BLS_DIR}/${MACHINE_ID}-${KERNEL_VERSION}.conf" $LOADER_ENTRY
++            else
++                cp -aT "${KERNEL_IMAGE%/*}/bls.conf" $LOADER_ENTRY
++            fi
+             sed -i 's/'$KERNEL_VERSION'/0-rescue-'${MACHINE_ID}'/' $LOADER_ENTRY
+         fi
+ 
+

@@ -1,0 +1,39 @@
+From 8446c8f9deefcc6c47d96a128b1e9b23d8855a96 Mon Sep 17 00:00:00 2001
+From: Thomas Blume <Thomas.Blume@suse.com>
+Date: Mon, 24 Feb 2020 12:11:25 +0100
+Subject: [PATCH] 95fcoe: default rd.nofcoe to false
+
+rd.nofcoe should default to false, e.g. fcoe should be enabled unless
+overwritten from the command line.
+The same applies for lldapd.sh.
+---
+ modules.d/95fcoe/lldpad.sh     | 2 +-
+ modules.d/95fcoe/parse-fcoe.sh | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/modules.d/95fcoe/lldpad.sh b/modules.d/95fcoe/lldpad.sh
+index 444c943e..7faa2e19 100755
+--- a/modules.d/95fcoe/lldpad.sh
++++ b/modules.d/95fcoe/lldpad.sh
+@@ -1,6 +1,6 @@
+ #!/bin/bash
+ 
+-if ! getargbool 0 rd.nofcoe ; then
++if getargbool 0 rd.nofcoe ; then
+ 	info "rd.nofcoe=0: skipping lldpad activation"
+ 	return 0
+ fi
+diff --git a/modules.d/95fcoe/parse-fcoe.sh b/modules.d/95fcoe/parse-fcoe.sh
+index 8bb55c6e..86f4331e 100755
+--- a/modules.d/95fcoe/parse-fcoe.sh
++++ b/modules.d/95fcoe/parse-fcoe.sh
+@@ -13,7 +13,7 @@
+ # fcoe=eth0:nodcb:vn2vn
+ # fcoe=4a:3f:4c:04:f8:d7:nodcb:fabric
+ 
+-if ! getargbool 0 rd.nofcoe ; then
++if getargbool 0 rd.nofcoe ; then
+ 	info "rd.nofcoe=0: skipping fcoe"
+ 	return 0
+ fi
+

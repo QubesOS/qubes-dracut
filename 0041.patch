@@ -1,0 +1,29 @@
+From 87bffc36e72c121024df033e1a78799456c73523 Mon Sep 17 00:00:00 2001
+From: Beniamino Galvani <bgalvani@redhat.com>
+Date: Mon, 23 Mar 2020 22:57:35 +0100
+Subject: [PATCH] network-manager: install libnss DNS and mDNS plugins
+
+Install libnss_dns.so and libnss_mdns4_minimal.so plugins for the Name
+Service Switch (NSS) functionality of glibc so that name resolution
+through /etc/resolv.conf and mDNS works in the initrd.
+
+Fixes: #772
+---
+ modules.d/35network-manager/module-setup.sh | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/modules.d/35network-manager/module-setup.sh b/modules.d/35network-manager/module-setup.sh
+index d6d0f9ce..8fc3114d 100755
+--- a/modules.d/35network-manager/module-setup.sh
++++ b/modules.d/35network-manager/module-setup.sh
+@@ -51,4 +51,9 @@ install() {
+     if ! [[ -d "$initdir/etc/sysconfig/network-scripts" ]]; then
+         inst_libdir_file "NetworkManager/$_nm_version/libnm-settings-plugin-ifcfg-rh.so"
+     fi
++
++    _arch=${DRACUT_ARCH:-$(uname -m)}
++
++    inst_libdir_file {"tls/$_arch/",tls/,"$_arch/",}"libnss_dns.so.*" \
++        {"tls/$_arch/",tls/,"$_arch/",}"libnss_mdns4_minimal.so.*"
+ }
+

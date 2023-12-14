@@ -1,0 +1,316 @@
+From 7dd8a2f4d351ce8975c0af122732a2a12697c8cc Mon Sep 17 00:00:00 2001
+From: Kairui Song <kasong@redhat.com>
+Date: Wed, 8 Apr 2020 20:09:38 +0800
+Subject: [PATCH] Add 99memstrack module
+
+memstrack is a new tool to track the overall memory usage and
+allocation, which can help off load the improve the builtin module
+memory tracing function in dracut.
+
+With this change, the rd.memdebug=4 behavior is similiar with before,
+but the report is defered to pre-pivot, so the memory usage info
+during the whole initramfs run is traced. And the ourput format is
+changed a bit:
+
+  dracut-pre-pivot[519]: ======== Report format module_summary: ========
+  dracut-pre-pivot[519]: Module squashfs using 10.4MB (2658 pages), peak allocation 10.4MB (2671 pages)
+  dracut-pre-pivot[519]: Module qxl using 3.4MB (865 pages), peak allocation 3.4MB (880 pages)
+  dracut-pre-pivot[519]: Module crc32c_intel using 2.0MB (519 pages), peak allocation 3.0MB (769 pages)
+  dracut-pre-pivot[519]: Module serio_raw using 2.0MB (505 pages), peak allocation 3.6MB (918 pages)
+  dracut-pre-pivot[519]: Module virtio_console using 1.6MB (416 pages), peak allocation 1.6MB (419 pages)
+  ... snip ...
+  dracut-pre-pivot[519]: ======== Report format module_summary END ========
+
+It now contains more detail and also includes the peak usage which could
+be more helpful.
+
+And now it have a rd.memdebug=5, which will print more detail about
+the stack trace of the top memory user, also printed on pri-pivot:
+
+  dracut-pre-pivot[519]: ======== Report format module_top: ========
+  dracut-pre-pivot[519]: Top stack usage of module squashfs:
+  dracut-pre-pivot[519]:   (null) Pages: 2658 (peak: 2671)
+  dracut-pre-pivot[519]:     (null) Pages: 2658 (peak: 2671)
+  dracut-pre-pivot[519]:       async_page_fault (0xffffffff81a01149) Pages: 1448 (peak: 1461)
+  dracut-pre-pivot[519]:         do_async_page_fault (0xffffffff8105c509) Pages: 1448 (peak: 1461)
+  dracut-pre-pivot[519]:           do_page_fault (0xffffffff8106296a) Pages: 1448 (peak: 1461)
+  dracut-pre-pivot[519]:             do_user_addr_fault (0xffffffff810626bd) Pages: 1448 (peak: 1461)
+  dracut-pre-pivot[519]:               handle_mm_fault (0xffffffff812940c4) Pages: 1448 (peak: 1461)
+  dracut-pre-pivot[519]:                 __handle_mm_fault (0xffffffff81293627) Pages: 1195 (peak: 1208)
+  dracut-pre-pivot[519]:                   __do_fault (0xffffffff8128b07e) Pages: 1195 (peak: 1208)
+  dracut-pre-pivot[519]:                     filemap_fault (0xffffffff8124c0b9) Pages: 1195 (peak: 1208)
+  dracut-pre-pivot[519]:                       __do_page_cache_readahead (0xffffffff812585da) Pages: 1063 (peak: 1076)
+  dracut-pre-pivot[519]:                         read_pages (0xffffffff812583c2) Pages: 1063 (peak: 1076)
+  dracut-pre-pivot[519]:                           squashfs_readpage squashfs (0xffffffffc0022073) Pages: 1039 (peak: 1052)
+  dracut-pre-pivot[519]:                             squashfs_readpage_block squashfs (0xffffffffc0024334) Pages: 744 (peak: 744)
+  dracut-pre-pivot[519]:                               squashfs_copy_cache squashfs (0xffffffffc0021a3f) Pages: 744 (peak: 744)
+  dracut-pre-pivot[519]:                                 pagecache_get_page (0xffffffff8124abf7) Pages: 744 (peak: 744)
+  dracut-pre-pivot[519]:                                   __page_cache_alloc (0xffffffff81247df6) Pages: 744 (peak: 744)
+  dracut-pre-pivot[519]:                                     alloc_pages_current (0xffffffff812cdca7) Pages: 744 (peak: 744)
+  dracut-pre-pivot[519]:                                       __alloc_pages_nodemask (0xffffffff812b3107) Pages: 744 (peak: 744)
+  dracut-pre-pivot[519]:                                         __alloc_pages_nodemask (0xffffffff812b3107) Pages: 1488 (peak: 1488)
+  dracut-pre-pivot[519]: Top stack usage of module qxl:
+  dracut-pre-pivot[519]:   (null) Pages: 865 (peak: 880)
+  dracut-pre-pivot[519]:     entry_SYSCALL_64_after_hwframe (0xffffffff81a0008c) Pages: 855 (peak: 858)
+  dracut-pre-pivot[519]:       do_syscall_64 (0xffffffff81002a5a) Pages: 855 (peak: 858)
+  dracut-pre-pivot[519]:         __x64_sys_finit_module (0xffffffff8117ccea) Pages: 811 (peak: 811)
+  dracut-pre-pivot[519]:           __do_sys_finit_module (0xffffffff8117cc6e) Pages: 811 (peak: 811)
+  dracut-pre-pivot[519]:             load_module (0xffffffff8117c6be) Pages: 802 (peak: 802)
+  dracut-pre-pivot[519]:               do_init_module (0xffffffff81179e72) Pages: 802 (peak: 802)
+  dracut-pre-pivot[519]:                 do_one_initcall (0xffffffff81000d5a) Pages: 802 (peak: 802)
+  dracut-pre-pivot[519]:                   serio_raw_poll serio_raw (0xffffffffc0200054) Pages: 802 (peak: 802)
+  dracut-pre-pivot[519]:                     __pci_register_driver (0xffffffff81557804) Pages: 802 (peak: 802)
+  dracut-pre-pivot[519]:                       driver_register (0xffffffff8167ed24) Pages: 802 (peak: 802)
+  dracut-pre-pivot[519]:                         bus_add_driver (0xffffffff8167cbb2) Pages: 801 (peak: 801)
+  dracut-pre-pivot[519]:                           driver_attach (0xffffffff8167d28e) Pages: 801 (peak: 801)
+  dracut-pre-pivot[519]:                             bus_for_each_dev (0xffffffff8167b62c) Pages: 801 (peak: 801)
+  dracut-pre-pivot[519]:                               __driver_attach (0xffffffff8167e18f) Pages: 801 (peak: 801)
+  dracut-pre-pivot[519]:                                 device_driver_attach (0xffffffff8167e0ed) Pages: 801 (peak: 801)
+  dracut-pre-pivot[519]:                                   driver_probe_device (0xffffffff8167de6c) Pages: 801 (peak: 801)
+  dracut-pre-pivot[519]:                                     really_probe (0xffffffff8167d9c9) Pages: 801 (peak: 801)
+  dracut-pre-pivot[519]:                                       pci_device_probe (0xffffffff81559627) Pages: 801 (peak: 801)
+  dracut-pre-pivot[519]:                                         local_pci_probe (0xffffffff81557f98) Pages: 801 (peak: 801)
+  dracut-pre-pivot[519]:                                           qxl_pci_probe qxl (0xffffffffc01f0387) Pages: 773 (peak: 773)
+  dracut-pre-pivot[519]:                                             drm_fbdev_generic_setup drm_kms_helper (0xffffffffc01b30c5) Pages: 773 (peak: 773)
+  dracut-pre-pivot[519]:                                               drm_fbdev_client_hotplug drm_kms_helper (0xffffffffc01b2656) Pages: 773 (peak: 773)
+  dracut-pre-pivot[519]:                                                 __drm_fb_helper_initial_config_and_unlock drm_kms_helper (0xffffffffc01b1a28) Pages: 770 (peak: 770)
+  dracut-pre-pivot[519]:                                                   drm_fb_helper_generic_probe drm_kms_helper (0xffffffffc01b2fa5) Pages: 770 (peak: 770)
+  dracut-pre-pivot[519]:                                                     vzalloc (0xffffffff812aa39c) Pages: 770 (peak: 770)
+  dracut-pre-pivot[519]:                                                       __vmalloc_node_range (0xffffffff812aa200) Pages: 768 (peak: 768)
+  ... snip ...
+  ======== Report format module_top END ========
+
+This could be very helpful for debuging memory usage issues.
+---
+ dracut.cmdline.7.asc                      | 16 ++++++++++------
+ dracut.spec                               |  2 ++
+ modules.d/99base/dracut-lib.sh            |  2 +-
+ modules.d/99memstrack/memstrack-report.sh | 23 +++++++++++++++++++++++
+ modules.d/99memstrack/memstrack-start.sh  | 68 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ modules.d/99memstrack/memstrack.service   | 13 +++++++++++++
+ modules.d/99memstrack/module-setup.sh     | 27 +++++++++++++++++++++++++++
+ 7 files changed, 144 insertions(+), 7 deletions(-)
+
+diff --git a/dracut.cmdline.7.asc b/dracut.cmdline.7.asc
+index c53601ea..4d4970c8 100644
+--- a/dracut.cmdline.7.asc
++++ b/dracut.cmdline.7.asc
+@@ -188,8 +188,8 @@ It should be attached to any report about dracut problems.
+     _/run/initramfs/init.log_.
+     If "quiet" is set, it also logs to the console.
+ 
+-**rd.memdebug=[0-3]**::
+-    Print memory usage info at various points, set the verbose level from 0 to 4.
++**rd.memdebug=[0-5]**::
++    Print memory usage info at various points, set the verbose level from 0 to 5.
+ +
+     Higher level means more debugging output:
+ +
+@@ -198,10 +198,14 @@ It should be attached to any report about dracut problems.
+     1 - partial /proc/meminfo
+     2 - /proc/meminfo
+     3 - /proc/meminfo + /proc/slabinfo
+-    4 - /proc/meminfo + /proc/slabinfo + tracekomem
+-        NOTE: tracekomem is a shell script utilizing kernel trace to track
+-              the rough total memory consumption of kernel modules during
+-              loading. It may override other trace configurations.
++    4 - /proc/meminfo + /proc/slabinfo + memstrack summary
++        NOTE: memstrack is a memory tracing tool that tracks the total memory
++              consumption, and peak memory consumption of each kernel modules
++              and userspace progress during the whole initramfs runtime, report
++              is genereted and the end of initramsfs run.
++    5 - /proc/meminfo + /proc/slabinfo + memstrack (with top memory stacktrace)
++        NOTE: memstrack (with top memory stacktrace) will print top memory
++              allocation stack traces during the whole initramfs runtime.
+ ----
+ 
+ **rd.break**::
+diff --git a/dracut.spec b/dracut.spec
+index 0369dde6..1eb47402 100644
+--- a/dracut.spec
++++ b/dracut.spec
+@@ -77,6 +77,7 @@ Requires: xz
+ Requires: gzip
+ 
+ %if 0%{?fedora} || 0%{?rhel}
++Recommends: memstrack
+ Recommends: hardlink
+ Recommends: pigz
+ Recommends: kpartx
+@@ -403,6 +404,7 @@ install -m 0755 51-dracut-rescue-postinst.sh $RPM_BUILD_ROOT%{_sysconfdir}/kerne
+ %{dracutlibdir}/modules.d/98syslog
+ %{dracutlibdir}/modules.d/98usrmount
+ %{dracutlibdir}/modules.d/99base
++%{dracutlibdir}/modules.d/99memstrack
+ %{dracutlibdir}/modules.d/99fs-lib
+ %{dracutlibdir}/modules.d/99shutdown
+ %attr(0644,root,root) %ghost %config(missingok,noreplace) %{_localstatedir}/log/dracut.log
+diff --git a/modules.d/99base/dracut-lib.sh b/modules.d/99base/dracut-lib.sh
+index b7020892..e602bacb 100755
+--- a/modules.d/99base/dracut-lib.sh
++++ b/modules.d/99base/dracut-lib.sh
+@@ -1187,7 +1187,7 @@ are_lists_eq() {
+ 
+ setmemdebug() {
+     if [ -z "$DEBUG_MEM_LEVEL" ]; then
+-        export DEBUG_MEM_LEVEL=$(getargnum 0 0 3 rd.memdebug)
++        export DEBUG_MEM_LEVEL=$(getargnum 0 0 5 rd.memdebug)
+     fi
+ }
+ 
+diff --git a/modules.d/99memstrack/memstrack-report.sh b/modules.d/99memstrack/memstrack-report.sh
+new file mode 100755
+index 00000000..241e8621
+--- /dev/null
++++ b/modules.d/99memstrack/memstrack-report.sh
+@@ -0,0 +1,23 @@
++#!/usr/bin/env bash
++. /lib/dracut-lib.sh
++
++if ! [ "$DEBUG_MEM_LEVEL" -ge 4 ]; then
++    exit 0
++fi
++
++if type -P systemctl >/dev/null; then
++    systemctl stop memstrack.service
++else
++    get_pid_of_tracer () {
++        local _user _pid _rest
++        read _user _pid _rest <<< $(ps aux | grep [m]emstrack | head -1)
++        echo $_pid
++    }
++
++    kill -s INT $(get_pid_of_tracer)
++    while [[ -n $(get_pid_of_tracer) ]]; do
++        sleep 1
++    done
++fi
++
++cat /.memstrack
+diff --git a/modules.d/99memstrack/memstrack-start.sh b/modules.d/99memstrack/memstrack-start.sh
+new file mode 100755
+index 00000000..5aa73efe
+--- /dev/null
++++ b/modules.d/99memstrack/memstrack-start.sh
+@@ -0,0 +1,68 @@
++#!/bin/sh
++# Mount kernel debug fs so debug tools can work.
++# memdebug=4 and memdebug=5 requires debug fs to be mounted.
++# And there is no need to umount it.
++
++type getargnum >/dev/null 2>&1 || . /lib/dracut-lib.sh
++
++# "sys/kernel/tracing" has the priority if exists.
++get_trace_base() {
++    # trace access through debugfs would be obsolete if "/sys/kernel/tracing" is available.
++    if [ -d "/sys/kernel/tracing" ]; then
++        echo "/sys/kernel"
++    else
++        echo "/sys/kernel/debug"
++    fi
++}
++
++is_debugfs_ready() {
++    [ -f "$(get_trace_base)/tracing/trace" ]
++}
++
++prepare_debugfs() {
++    local trace_base
++
++    trace_base=$(get_trace_base)
++    # old debugfs interface case.
++    if ! [ -d "$trace_base/tracing" ]; then
++        mount none -t debugfs $trace_base
++    # new tracefs interface case.
++    elif ! [ -f "$trace_base/tracing/trace" ]; then
++        mount none -t tracefs "$trace_base/tracing"
++    fi
++
++    if ! [ -f "$trace_base/tracing/trace" ]; then
++        echo "WARN: failed to mount debugfs"
++        return 1
++    fi
++}
++
++if ! is_debugfs_ready ; then
++    prepare_debugfs
++fi
++
++if [ -n "$DEBUG_MEM_LEVEL" ]; then
++    if [ "$DEBUG_MEM_LEVEL" -ge 5 ]; then
++        echo "memstrack - will report kernel module memory usage summary and top allocation stack"
++        memstrack --report module_summary,module_top --notui --throttle 80 -o /.memstrack &
++    elif [ "$DEBUG_MEM_LEVEL" -ge 4 ]; then
++        echo "memstrack - will report memory usage summary"
++        memstrack --report module_summary --notui --throttle 80 -o /.memstrack &
++    else
++        exit 0;
++    fi
++fi
++
++PID=$!
++RET=$?
++
++if [ $RET -ne 0 ]; then
++    echo "Failed to start memstrack, exit status: $RET"
++    exit $RET
++fi
++
++# Wait a second for memstrack to setup everything, avoid missing any event
++sleep 1
++
++echo $PID > /run/memstrack.pid
++disown
+diff --git a/modules.d/99memstrack/memstrack.service b/modules.d/99memstrack/memstrack.service
+new file mode 100644
+index 00000000..6b47adef
+--- /dev/null
++++ b/modules.d/99memstrack/memstrack.service
+@@ -0,0 +1,13 @@
++[Unit]
++Description=Memstrack Anylazing Service
++DefaultDependencies=no
++Before=dracut-cmdline.service systemd-udevd.service local-fs-pre.target
++IgnoreOnIsolate=true
++
++[Service]
++Type=simple
++ExecStart=/bin/memstrack-start
++PIDFile=/run/memstrack.pid
++StandardInput=null
++StandardOutput=syslog+console
++StandardError=syslog+console
+diff --git a/modules.d/99memstrack/module-setup.sh b/modules.d/99memstrack/module-setup.sh
+new file mode 100755
+index 00000000..d5bacb4d
+--- /dev/null
++++ b/modules.d/99memstrack/module-setup.sh
+@@ -0,0 +1,27 @@
++#!/usr/bin/bash
++
++check() {
++    if type -P memstrack >/dev/null; then
++        dinfo "memstrack is available"
++        return 0
++    fi
++
++    dinfo "memstrack is not available"
++    dinfo "If you need to use rd.memdebug>=4, please install memstrack"
++
++    return 1
++}
++
++depends() {
++    return 0
++}
++
++install() {
++    inst "/bin/memstrack" "/bin/memstrack"
++
++    inst "$moddir/memstrack-start.sh" "/bin/memstrack-start"
++    inst_hook cleanup 99 "$moddir/memstrack-report.sh"
++
++    inst "$moddir/memstrack.service" "$systemdsystemunitdir/memstrack.service"
++    systemctl -q --root "$initdir" add-wants initrd.target memstrack.service
++}
+

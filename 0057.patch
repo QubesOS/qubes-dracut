@@ -1,0 +1,34 @@
+From c800d1a7b943f8ca86b9756fbaa4cd2a5644ad44 Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Fri, 29 May 2020 10:49:47 +0200
+Subject: [PATCH] dracut.cmdline.7.asc: clarify usage of `rd.lvm.vg` and
+ `rd.lvm.lv`
+
+Fixes: https://github.com/dracutdevs/dracut/issues/816
+---
+ dracut.cmdline.7.asc | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/dracut.cmdline.7.asc b/dracut.cmdline.7.asc
+index 4d4970c8..751f5276 100644
+--- a/dracut.cmdline.7.asc
++++ b/dracut.cmdline.7.asc
+@@ -281,12 +281,12 @@ LVM
+     disable LVM detection
+ 
+ **rd.lvm.vg=**__<volume group name>__::
+-    only activate the volume groups with the given name. rd.lvm.vg can be
+-    specified multiple times on the kernel command line.
++    only activate all logical volumes in the the volume groups with the given name.
++    rd.lvm.vg can be specified multiple times on the kernel command line.
+ 
+-**rd.lvm.lv=**__<logical volume name>__::
+-    only activate the logical volumes with the given name. rd.lvm.lv can be
+-    specified multiple times on the kernel command line.
++**rd.lvm.lv=**__<volume group name>/<logical volume name>__::
++    only activate the logical volumes with the given name.
++    rd.lvm.lv can be specified multiple times on the kernel command line.
+ 
+ **rd.lvm.conf=0**::
+     remove any _/etc/lvm/lvm.conf_, which may exist in the initramfs
+

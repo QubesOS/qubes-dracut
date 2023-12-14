@@ -1,0 +1,26 @@
+From 7fb8f939a52a904b1860e303a6a7fe69ba0d2ceb Mon Sep 17 00:00:00 2001
+From: Radek Vykydal <rvykydal@redhat.com>
+Date: Tue, 10 Mar 2020 10:48:21 +0100
+Subject: [PATCH] Fix pre-trigger stage by replacing exit with return in
+ lldpad.sh
+
+Using exit makes the pre-trigger stage finish after running 03-lldpad.sh
+pre-trigger hook.
+---
+ modules.d/95fcoe/lldpad.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules.d/95fcoe/lldpad.sh b/modules.d/95fcoe/lldpad.sh
+index c32feeed..444c943e 100755
+--- a/modules.d/95fcoe/lldpad.sh
++++ b/modules.d/95fcoe/lldpad.sh
+@@ -2,7 +2,7 @@
+ 
+ if ! getargbool 0 rd.nofcoe ; then
+ 	info "rd.nofcoe=0: skipping lldpad activation"
+-	exit 0
++	return 0
+ fi
+ 
+ # Note lldpad will stay running after switchroot, the system initscripts
+

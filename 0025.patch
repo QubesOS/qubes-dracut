@@ -1,0 +1,27 @@
+From 97a931c7d9f8190115893a932f2e10292704cae4 Mon Sep 17 00:00:00 2001
+From: Dusty Mabe <dusty@dustymabe.com>
+Date: Fri, 13 Mar 2020 15:40:11 -0400
+Subject: [PATCH] don't prefer $TMPDIR over --tmpdir
+
+Ability to use `$TMPDIR` was introduced in bc1e69b but
+causes the `--tmpdir` option on the command line to be
+ignored. Switch to only using `$TMPDIR` if `--tmpdir`
+wasn't specified.
+---
+ dracut.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dracut.sh b/dracut.sh
+index ab82cbc9..39fa3692 100755
+--- a/dracut.sh
++++ b/dracut.sh
+@@ -765,7 +765,7 @@ stdloglvl=$((stdloglvl + verbosity_mod_l))
+ [[ $dracutbasedir ]] || dracutbasedir=$dracutsysrootdir/usr/lib/dracut
+ [[ $fw_dir ]] || fw_dir="$dracutsysrootdir/lib/firmware/updates:$dracutsysrootdir/lib/firmware:$dracutsysrootdir/lib/firmware/$kernel"
+ [[ $tmpdir_l ]] && tmpdir="$tmpdir_l"
+-[[ $tmpdir ]] && tmpdir="$TMPDIR"
++[[ $tmpdir ]] || tmpdir="$TMPDIR"
+ [[ $tmpdir ]] || tmpdir=$dracutsysrootdir/var/tmp
+ [[ $INITRD_COMPRESS ]] && compress=$INITRD_COMPRESS
+ [[ $compress_l ]] && compress=$compress_l
+

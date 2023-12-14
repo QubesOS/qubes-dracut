@@ -1,0 +1,24 @@
+From 91418b13dc679947bb4d22ae6badcbf41b56c645 Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Thu, 12 Mar 2020 13:44:08 +0100
+Subject: [PATCH] TEST-03-USR-MOUNT/test.sh: increase loglevel
+
+to debug the spurious fails
+---
+ test/TEST-03-USR-MOUNT/test.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/TEST-03-USR-MOUNT/test.sh b/test/TEST-03-USR-MOUNT/test.sh
+index 5190f220..3bb479e4 100755
+--- a/test/TEST-03-USR-MOUNT/test.sh
++++ b/test/TEST-03-USR-MOUNT/test.sh
+@@ -19,7 +19,7 @@ client_run() {
+         -drive format=raw,index=1,media=disk,file=$TESTDIR/usr.btrfs \
+         -drive format=raw,index=2,media=disk,file=$TESTDIR/result \
+         -watchdog i6300esb -watchdog-action poweroff \
+-        -append "panic=1 systemd.crash_reboot root=LABEL=dracut $client_opts quiet rd.retry=3 rd.info console=ttyS0,115200n81 selinux=0 rd.debug rd.shell=0 $DEBUGFAIL" \
++        -append "panic=1 systemd.crash_reboot root=LABEL=dracut $client_opts loglevel=7 rd.retry=3 rd.info console=ttyS0,115200n81 selinux=0 rd.debug rd.shell=0 $DEBUGFAIL" \
+         -initrd $TESTDIR/initramfs.testing
+ 
+     if ! grep -F -m 1 -q dracut-root-block-success $TESTDIR/result; then
+

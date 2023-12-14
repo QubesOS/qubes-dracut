@@ -1,0 +1,30 @@
+From 7069132ec7e94a3274aa1b3b3b6e339066118a4d Mon Sep 17 00:00:00 2001
+From: Lukas Nykryn <lnykryn@redhat.com>
+Date: Tue, 10 Mar 2020 15:18:37 +0100
+Subject: [PATCH] network: fix glob matching ipv6 addresses
+
+In this case we want to cover three cases
+1) ip_address:ip_address
+2) number:macaddress
+3) :macaddress
+
+We consider something an IPv6 address if it starts with number and
+contains ":", but IPv6 addresses are in hexa.
+---
+ modules.d/40network/net-lib.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules.d/40network/net-lib.sh b/modules.d/40network/net-lib.sh
+index 16730e5b..7f185fdd 100755
+--- a/modules.d/40network/net-lib.sh
++++ b/modules.d/40network/net-lib.sh
+@@ -510,7 +510,7 @@ ip_to_var() {
+     [ -n "$6" ] && dev=$6
+     [ -n "$7" ] && autoconf=$7
+     case "$8" in
+-        [0-9]*:*|[0-9]*.[0-9]*.[0-9]*.[0-9]*)
++        [0-9a-fA-F]*:*|[0-9]*.[0-9]*.[0-9]*.[0-9]*)
+             dns1="$8"
+             [ -n "$9" ] && dns2="$9"
+             ;;
+

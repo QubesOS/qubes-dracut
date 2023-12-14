@@ -1,0 +1,33 @@
+From 9e68789d66a6a383e5c46f687350897705c7994f Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Wed, 4 Mar 2020 14:39:39 +0100
+Subject: [PATCH] dracut.spec: add version check for deprecated files
+
+---
+ dracut.spec | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/dracut.spec b/dracut.spec
+index e336a25c..03b41471 100644
+--- a/dracut.spec
++++ b/dracut.spec
+@@ -278,8 +278,7 @@ rm -f -- $RPM_BUILD_ROOT%{_mandir}/man1/lsinitrd.1*
+ echo 'hostonly="no"' > $RPM_BUILD_ROOT%{dracutlibdir}/dracut.conf.d/02-generic-image.conf
+ echo 'dracut_rescue_image="yes"' > $RPM_BUILD_ROOT%{dracutlibdir}/dracut.conf.d/02-rescue.conf
+ 
+-%if 0%{?fedora} || 0%{?rhel}
+-# FIXME: remove after F30
++%if 0%{?fedora} <= 30 || 0%{?rhel} <= 8
+ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/kernel/postinst.d
+ install -m 0755 51-dracut-rescue-postinst.sh $RPM_BUILD_ROOT%{_sysconfdir}/kernel/postinst.d/51-dracut-rescue-postinst.sh
+ %endif
+@@ -475,7 +474,7 @@ install -m 0755 51-dracut-rescue-postinst.sh $RPM_BUILD_ROOT%{_sysconfdir}/kerne
+ %files config-rescue
+ %{dracutlibdir}/dracut.conf.d/02-rescue.conf
+ %{_prefix}/lib/kernel/install.d/51-dracut-rescue.install
+-%if 0%{?fedora} || 0%{?rhel}
++%if 0%{?fedora} <= 30 || 0%{?rhel} <= 8
+ # FIXME: remove after F30
+ %{_sysconfdir}/kernel/postinst.d/51-dracut-rescue-postinst.sh
+ %endif
+

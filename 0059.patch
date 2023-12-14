@@ -1,0 +1,38 @@
+From eb770a4a207b2e9e3080068c1df22b69ed44d4b5 Mon Sep 17 00:00:00 2001
+From: Beniamino Galvani <bgalvani@redhat.com>
+Date: Thu, 7 May 2020 07:48:12 +0200
+Subject: [PATCH] network-manager: set kernel hostname from the command line
+
+Since commit ff70adf873ef ("initrd: save hostname to a file in /run"),
+the initrd generator of NetworkManager parses the hostname from 'ip='
+options of the kernel command line and writes it to
+/run/NetworkManager/initrd/hostname.
+
+When that file exists, set the kernel hostname.
+
+In presence of multiple hostnames in the command line, the last one
+wins. Hostnames from command line always have precedence over ones
+received through DHCP. This is a bit different from the legacy network
+module that gives higher precedence to the hostname (from DHCP or
+command line) of the last interface that is brought up, which depends
+on the udev order.
+---
+ modules.d/35network-manager/nm-run.sh | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/modules.d/35network-manager/nm-run.sh b/modules.d/35network-manager/nm-run.sh
+index fc5280a1..61752384 100755
+--- a/modules.d/35network-manager/nm-run.sh
++++ b/modules.d/35network-manager/nm-run.sh
+@@ -10,6 +10,10 @@ for i in /usr/lib/NetworkManager/system-connections/* \
+   else
+       /usr/sbin/NetworkManager --configure-and-quit=initrd --no-daemon
+   fi
++
++  if [ -s /run/NetworkManager/initrd/hostname ]; then
++      cat /run/NetworkManager/initrd/hostname > /proc/sys/kernel/hostname
++  fi
+   break
+ done
+ 
+

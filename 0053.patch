@@ -1,0 +1,39 @@
+From 2a611328652388b809a379403ceec126cb55819f Mon Sep 17 00:00:00 2001
+From: Kairui Song <kasong@redhat.com>
+Date: Wed, 27 May 2020 21:59:55 +0800
+Subject: [PATCH] Remove cleanup_trace_mem calls
+
+In commit 49c4172 all shell based memory tracing functions are removed,
+there are some left over. Remove them as well.
+
+Signed-off-by: Kairui Song <kasong@redhat.com>
+---
+ modules.d/98dracut-systemd/dracut-pre-pivot.sh | 1 -
+ modules.d/99base/init.sh                       | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/modules.d/98dracut-systemd/dracut-pre-pivot.sh b/modules.d/98dracut-systemd/dracut-pre-pivot.sh
+index 96e6f8ca..cc70e3c3 100755
+--- a/modules.d/98dracut-systemd/dracut-pre-pivot.sh
++++ b/modules.d/98dracut-systemd/dracut-pre-pivot.sh
+@@ -14,7 +14,6 @@ make_trace_mem "hook pre-pivot" '1:shortmem' '2+:mem' '3+:slab'
+ getarg 'rd.break=pre-pivot' 'rdbreak=pre-pivot' && emergency_shell -n pre-pivot "Break pre-pivot"
+ source_hook pre-pivot
+ 
+-cleanup_trace_mem
+ # pre pivot cleanup scripts are sourced just before we switch over to the new root.
+ getarg 'rd.break=cleanup' 'rdbreak=cleanup' && emergency_shell -n cleanup "Break cleanup"
+ source_hook cleanup
+diff --git a/modules.d/99base/init.sh b/modules.d/99base/init.sh
+index 148ce831..f70a811e 100755
+--- a/modules.d/99base/init.sh
++++ b/modules.d/99base/init.sh
+@@ -271,7 +271,6 @@ getarg 'rd.break=pre-pivot' -d 'rdbreak=pre-pivot' && emergency_shell -n pre-piv
+ source_hook pre-pivot
+ 
+ make_trace_mem "hook cleanup" '1:shortmem' '2+:mem' '3+:slab'
+-cleanup_trace_mem
+ # pre pivot cleanup scripts are sourced just before we switch over to the new root.
+ getarg 'rd.break=cleanup' -d 'rdbreak=cleanup' && emergency_shell -n cleanup "Break cleanup"
+ source_hook cleanup
+

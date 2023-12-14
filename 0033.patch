@@ -1,0 +1,100 @@
+From b8a92b715677d52dbc2b27a710b9816fd8b9a63b Mon Sep 17 00:00:00 2001
+From: Ben Howard <ben.howard@redhat.com>
+Date: Fri, 3 Apr 2020 13:32:44 -0600
+Subject: [PATCH] multipath: add automatic configuration for multipath
+
+Add support for 'rd.multipath=default' for using the default
+configuration on boot. The intended purpose for this is to help support
+ostree-based image boots from multipathed devices (such as Fedora and
+Red Hat CoreOS).
+---
+ dracut.cmdline.7.asc                               |  3 +++
+ modules.d/90multipath/module-setup.sh              |  7 +++++--
+ modules.d/90multipath/multipathd-configure.service | 19 +++++++++++++++++++
+ modules.d/90multipath/multipathd.sh                |  5 +++++
+ 4 files changed, 32 insertions(+), 2 deletions(-)
+
+diff --git a/dracut.cmdline.7.asc b/dracut.cmdline.7.asc
+index 646f1f03..63074353 100644
+--- a/dracut.cmdline.7.asc
++++ b/dracut.cmdline.7.asc
+@@ -431,6 +431,9 @@ MULTIPATH
+ **rd.multipath=0**::
+    disable multipath detection
+ 
++**rd.multipath=default**::
++   use default multipath settings
++
+ FIPS
+ ~~~~
+ **rd.fips**::
+diff --git a/modules.d/90multipath/module-setup.sh b/modules.d/90multipath/module-setup.sh
+index 48a9d09a..2bb7444b 100755
+--- a/modules.d/90multipath/module-setup.sh
++++ b/modules.d/90multipath/module-setup.sh
+@@ -83,11 +83,12 @@ install() {
+         dmsetup \
+         kpartx \
+         mpath_wait \
++        mpathconf \
++        mpathpersist \
+         multipath  \
+         multipathd \
+-        mpathpersist \
+-        xdrgetuid \
+         xdrgetprio \
++        xdrgetuid \
+         /etc/xdrdevices.conf \
+         /etc/multipath.conf \
+         /etc/multipath/* \
+@@ -109,7 +110,9 @@ install() {
+     fi
+ 
+     if dracut_module_included "systemd"; then
++        inst_simple "${moddir}/multipathd-configure.service" "${systemdsystemunitdir}/multipathd-configure.service"
+         inst_simple "${moddir}/multipathd.service" "${systemdsystemunitdir}/multipathd.service"
++        systemctl -q --root "$initdir" enable multipathd-configure.service
+         systemctl -q --root "$initdir" enable multipathd.service
+     else
+         inst_hook pre-trigger 02 "$moddir/multipathd.sh"
+diff --git a/modules.d/90multipath/multipathd-configure.service b/modules.d/90multipath/multipathd-configure.service
+new file mode 100644
+index 00000000..de690615
+--- /dev/null
++++ b/modules.d/90multipath/multipathd-configure.service
+@@ -0,0 +1,19 @@
++[Unit]
++Description=Device-Mapper Multipath Default Configuration
++Before=iscsi.service iscsid.service lvm2-activation-early.service
++Wants=systemd-udev-trigger.service systemd-udev-settle.service local-fs-pre.target
++After=systemd-udev-trigger.service systemd-udev-settle.service
++Before=local-fs-pre.target multipathd.service
++DefaultDependencies=no
++Conflicts=shutdown.target
++
++ConditionKernelCommandLine=rd.multipath=default
++ConditionPathExists=!/etc/multipath.conf
++
++[Service]
++Type=oneshot
++ExecStartPre=-/usr/bin/mkdir -p /etc/multipath/multipath.conf.d
++ExecStart=/usr/sbin/mpathconf --enable
++
++[Install]
++WantedBy=sysinit.target
+diff --git a/modules.d/90multipath/multipathd.sh b/modules.d/90multipath/multipathd.sh
+index 2c2dcc85..936c5dc7 100755
+--- a/modules.d/90multipath/multipathd.sh
++++ b/modules.d/90multipath/multipathd.sh
+@@ -1,5 +1,10 @@
+ #!/bin/sh
+ 
++if [ "$(getarg rd.multipath)x" == "default" ] && [ ! -e /etc/multipath.conf ]; then
++    mkdir -p /etc/multipath/multipath.conf.d
++    mpathconf --enable
++fi
++
+ if getargbool 1 rd.multipath -d -n rd_NO_MULTIPATH && [ -e /etc/multipath.conf ]; then
+     modprobe dm-multipath
+     multipathd -B || multipathd
+

@@ -1,0 +1,24 @@
+From c6a2ebffe5812bf45a17d90208d9bb1044b6dba0 Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Thu, 30 Apr 2020 20:42:27 +0200
+Subject: [PATCH] 90kernel-modules/module-setup.sh: add sg kernel module
+
+Fixes udevd messages about failure of `modprobe -bv sg`.
+---
+ modules.d/90kernel-modules/module-setup.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules.d/90kernel-modules/module-setup.sh b/modules.d/90kernel-modules/module-setup.sh
+index 28d291eb..b3aa75f3 100755
+--- a/modules.d/90kernel-modules/module-setup.sh
++++ b/modules.d/90kernel-modules/module-setup.sh
+@@ -25,7 +25,7 @@ installkernel() {
+     }
+ 
+     install_block_modules () {
+-        hostonly='' instmods sr_mod sd_mod scsi_dh ata_piix
++        hostonly='' instmods sg sr_mod sd_mod scsi_dh ata_piix
+         instmods \
+             scsi_dh_rdac scsi_dh_emc scsi_dh_alua \
+             =ide nvme vmd \
+

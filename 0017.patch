@@ -1,0 +1,39 @@
+From fc6f458c3becd55277d1ab87d1608f0fe1fccf08 Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Wed, 11 Mar 2020 13:14:26 +0100
+Subject: [PATCH] TEST-12-RAID-DEG/create-root.sh: more udevadm settle
+
+---
+ test/TEST-12-RAID-DEG/create-root.sh | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/test/TEST-12-RAID-DEG/create-root.sh b/test/TEST-12-RAID-DEG/create-root.sh
+index c210b582..f40d2500 100755
+--- a/test/TEST-12-RAID-DEG/create-root.sh
++++ b/test/TEST-12-RAID-DEG/create-root.sh
+@@ -20,7 +20,7 @@ echo "The passphrase is test"
+ set -e
+ cryptsetup luksOpen /dev/md0 dracut_crypt_test </keyfile
+ lvm pvcreate -ff  -y /dev/mapper/dracut_crypt_test
+-lvm vgcreate dracut /dev/mapper/dracut_crypt_test 
++lvm vgcreate dracut /dev/mapper/dracut_crypt_test
+ lvm lvcreate -l 100%FREE -n root dracut
+ lvm vgchange -ay
+ mke2fs -L root /dev/dracut/root
+@@ -29,12 +29,14 @@ mount /dev/dracut/root /sysroot
+ cp -a -t /sysroot /source/*
+ mkdir /sysroot/run
+ umount /sysroot
+-lvm lvchange -a n /dev/dracut/root 
++lvm lvchange -a n /dev/dracut/root
+ udevadm settle
+ cryptsetup luksClose /dev/mapper/dracut_crypt_test
+ udevadm settle
+ mdadm -W /dev/md0 || :
++udevadm settle
+ mdadm --detail --export /dev/md0 |grep -F MD_UUID > /tmp/mduuid
+ . /tmp/mduuid
++udevadm settle
+ eval $(udevadm info --query=env --name=/dev/md0|while read line || [ -n "$line" ]; do [ "$line" != "${line#*ID_FS_UUID*}" ] && echo $line; done;)
+ { echo "dracut-root-block-created"; echo MD_UUID=$MD_UUID;  echo "ID_FS_UUID=$ID_FS_UUID";} | dd oflag=direct,dsync of=/dev/sda
+

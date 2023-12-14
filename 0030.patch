@@ -1,0 +1,33 @@
+From defb1611c771d9f05780aebb101baefde2f66874 Mon Sep 17 00:00:00 2001
+From: Sebastian Mitterle <smitterl@redhat.com>
+Date: Thu, 19 Mar 2020 12:12:50 +0100
+Subject: [PATCH] dasd: only install /etc/dasd.conf if present
+
+`dasd.conf` needn't be present on system even if modules have been loaded.
+
+Check if file exists to avoid error message during kernel update
+```bash
+dracut-install: ERROR: installing '/etc/dasd.conf'
+dracut: FAILED: /usr/lib/dracut/dracut-install -D /var/tmp/dracut.YvVRx5/initramfs -H /etc/dasd.conf
+```
+---
+ modules.d/95dasd/module-setup.sh | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/modules.d/95dasd/module-setup.sh b/modules.d/95dasd/module-setup.sh
+index 2c49cd26..c71c8a08 100755
+--- a/modules.d/95dasd/module-setup.sh
++++ b/modules.d/95dasd/module-setup.sh
+@@ -18,8 +18,9 @@ depends() {
+ install() {
+     inst_hook cmdline 30 "$moddir/parse-dasd.sh"
+     inst_multiple dasdinfo dasdconf.sh normalize_dasd_arg
+-    if [[ $hostonly ]]; then
+-        inst -H /etc/dasd.conf
++    conf=/etc/dasd.conf
++    if [[ $hostonly && -f $conf ]] ; then
++        inst -H $conf
+     fi
+     inst_rules 56-dasd.rules
+     inst_rules 59-dasd.rules
+

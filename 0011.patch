@@ -1,0 +1,17 @@
+From 2293609dcba01f5bf256b4245896927d4719a273 Mon Sep 17 00:00:00 2001
+From: Daniel Molkentin <dmolkentin@suse.com>
+Date: Tue, 24 Jul 2018 19:38:30 +0200
+Subject: [PATCH] 95dcssblk: fix script permissions
+
+---
+ modules.d/95dcssblk/module-setup.sh  | 0
+ modules.d/95dcssblk/parse-dcssblk.sh | 0
+ 2 files changed, 0 insertions(+), 0 deletions(-)
+
+diff --git a/modules.d/95dcssblk/module-setup.sh b/modules.d/95dcssblk/module-setup.sh
+old mode 100644
+new mode 100755
+diff --git a/modules.d/95dcssblk/parse-dcssblk.sh b/modules.d/95dcssblk/parse-dcssblk.sh
+old mode 100644
+new mode 100755
+

@@ -1,0 +1,23 @@
+From 11474b808b6fbd373b2ca6ce3350a024e6a8ea15 Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Thu, 9 Apr 2020 22:05:41 +0200
+Subject: [PATCH] TEST-99: exclude /etc/dnf/* from check
+
+file /etc/dnf/modules.d/eclipse.module.rpmmoved is not owned by any package
+---
+ test/TEST-99-RPM/test.sh | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/test/TEST-99-RPM/test.sh b/test/TEST-99-RPM/test.sh
+index af64c24a..504fd77f 100755
+--- a/test/TEST-99-RPM/test.sh
++++ b/test/TEST-99-RPM/test.sh
+@@ -84,6 +84,7 @@ find / -xdev -type f -not -path '/var/*' \
+   -not -path "/boot/loader/entries/\$(cat /etc/machine-id)-*" \
+   -not -path "/boot/\$(cat /etc/machine-id)/*" \
+   -not -path '/etc/openldap/certs/*' \
++  -not -path '/etc/dnf/*' \
+   -print0 | xargs -0 rpm -qf | \
+   grep -F 'not owned' &>> /test.output || :
+ exit 0
+

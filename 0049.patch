@@ -1,0 +1,25 @@
+From 32dfd41688a0a2aee59a62dd661c808a935d91a4 Mon Sep 17 00:00:00 2001
+From: Fabian Vogt <fvogt@suse.de>
+Date: Mon, 4 May 2020 10:09:07 +0200
+Subject: [PATCH] Fix test in lsinitrd
+
+If $uefi is empty, this evaluated to true previously,
+resulting in "initrd in UEFI: : 13M".
+---
+ lsinitrd.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lsinitrd.sh b/lsinitrd.sh
+index b5c73f62..ea0c7f62 100755
+--- a/lsinitrd.sh
++++ b/lsinitrd.sh
+@@ -206,7 +206,7 @@ if [ "$bin" = "MZ" ]; then
+ fi
+ 
+ if (( ${#filenames[@]} <= 0 )) && [[ -z "$unpack" ]] && [[ -z "$unpackearly" ]]; then
+-    if [ -n $uefi ]; then
++    if [ -n "$uefi" ]; then
+         echo -n "initrd in UEFI: $uefi: "
+         du -h $image | while read a b || [ -n "$a" ]; do echo $a;done
+         if [ -f "$TMPDIR/osrel.txt" ]; then
+

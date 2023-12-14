@@ -1,0 +1,52 @@
+From b448655ba7cf46d25cbc2845e30ec559a487fc1e Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Fri, 29 May 2020 10:30:26 +0200
+Subject: [PATCH] CI: remove Fedora 30, add Fedora 32
+
+---
+ .github/workflows/{fedora-30.yml => fedora-32.yml} | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/.github/workflows/fedora-30.yml b/.github/workflows/fedora-32.yml
+similarity index 84%
+rename from .github/workflows/fedora-30.yml
+rename to .github/workflows/fedora-32.yml
+index 1a3d3e8d..589bf176 100644
+--- a/.github/workflows/fedora-30.yml
++++ b/.github/workflows/fedora-32.yml
+@@ -1,6 +1,6 @@
+ ## The test container is created with https://github.com/dracutdevs/fedora-container
+ 
+-name: Fedora-30
++name: Fedora-32
+ 
+ on:
+   push:
+@@ -14,7 +14,7 @@ jobs:
+   test:
+     runs-on: ubuntu-latest
+     container:
+-      image: quay.io/haraldh/dracut-fedora:30
++      image: quay.io/haraldh/dracut-fedora:32
+       options: "--privileged"
+     timeout-minutes: 45
+     strategy:
+@@ -32,11 +32,17 @@ jobs:
+           "15",
+           "17",
+           "20",
++          "21",
+           "30",
++          "31",
+           "35",
++          "36",
+           "40",
++          "41",
+           "50",
++          "51",
+           "60",
++          "61",
+           "99",
+         ]
+       fail-fast: false
+

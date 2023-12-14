@@ -1,0 +1,25 @@
+From 058739bf6941f4e96cc734fe4582abbb55baac38 Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Wed, 11 Mar 2020 12:38:01 +0100
+Subject: [PATCH] README.md: fix github action badge links
+
+---
+ README.md | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/README.md b/README.md
+index c0ee79e2..9948bf97 100644
+--- a/README.md
++++ b/README.md
+@@ -4,8 +4,8 @@ dracut
+ dracut is an event driven initramfs infrastructure.
+ 
+ [![Build Status](https://travis-ci.org/dracutdevs/dracut.svg?branch=master)](https://travis-ci.org/dracutdevs/dracut)
+-![Fedora-30](https://github.com/dracutdevs/dracut/workflows/Fedora-30/badge.svg?branch=master)
+-![Fedora-31](https://github.com/dracutdevs/dracut/workflows/Fedora-31/badge.svg?branch=master)
++[![Fedora-30](https://github.com/dracutdevs/dracut/workflows/Fedora-30/badge.svg?branch=master)](https://github.com/dracutdevs/dracut/actions?query=workflow%3AFedora-30)
++[![Fedora-31](https://github.com/dracutdevs/dracut/workflows/Fedora-31/badge.svg?branch=master)](https://github.com/dracutdevs/dracut/actions?query=workflow%3AFedora-31)
+ 
+ dracut (the tool) is used to create an initramfs image by copying tools
+ and files from an installed system and combining it with the
+

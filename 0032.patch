@@ -1,0 +1,33 @@
+From 3a043feea1d1d1d1d01762d95b725b9adef61562 Mon Sep 17 00:00:00 2001
+From: Alexander Sosedkin <asosedkin@redhat.com>
+Date: Thu, 26 Mar 2020 15:11:15 +0100
+Subject: [PATCH] url-lib: drop NSS if it's not in curl --version
+
+---
+ modules.d/45url-lib/module-setup.sh | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/modules.d/45url-lib/module-setup.sh b/modules.d/45url-lib/module-setup.sh
+index a99e0c56..258a9e16 100755
+--- a/modules.d/45url-lib/module-setup.sh
++++ b/modules.d/45url-lib/module-setup.sh
+@@ -19,11 +19,13 @@ install() {
+     inst_simple "$moddir/url-lib.sh" "/lib/url-lib.sh"
+     inst_multiple -o ctorrent
+     inst_multiple curl
+-    # also install libs for curl https
+-    inst_libdir_file "libnsspem.so*"
+-    inst_libdir_file "libnsssysinit.so*"
+-    inst_libdir_file "libsoftokn3.so*"
+-    inst_libdir_file "libsqlite3.so*"
++    if curl --version | grep -qi '\bNSS\b'; then
++        # also install libs for curl https
++        inst_libdir_file "libnsspem.so*"
++        inst_libdir_file "libnsssysinit.so*"
++        inst_libdir_file "libsoftokn3.so*"
++        inst_libdir_file "libsqlite3.so*"
++    fi
+ 
+     for _dir in $libdirs; do
+ 	[[ -d $dracutsysrootdir$_dir ]] || continue
+

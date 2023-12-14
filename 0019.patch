@@ -1,0 +1,344 @@
+From a22ab24d5371cbd73b18b27e98e980e45e39ff5f Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Thu, 12 Mar 2020 11:55:37 +0100
+Subject: [PATCH] test: use dd from /dev/zero, instead of creating files with a
+ hole
+
+---
+ test/TEST-01-BASIC/test.sh               |  2 +-
+ test/TEST-02-SYSTEMD/test.sh             |  2 +-
+ test/TEST-03-USR-MOUNT/test.sh           |  4 ++--
+ test/TEST-04-FULL-SYSTEMD/test.sh        |  4 ++--
+ test/TEST-10-RAID/test.sh                |  2 +-
+ test/TEST-11-LVM/test.sh                 |  2 +-
+ test/TEST-12-RAID-DEG/test.sh            | 10 +++++-----
+ test/TEST-13-ENC-RAID-LVM/test.sh        |  2 +-
+ test/TEST-14-IMSM/test.sh                |  8 ++++----
+ test/TEST-15-BTRFSRAID/test.sh           |  2 +-
+ test/TEST-17-LVM-THIN/test.sh            |  2 +-
+ test/TEST-20-NFS/test.sh                 |  2 +-
+ test/TEST-30-ISCSI/test.sh               | 10 +++++-----
+ test/TEST-35-ISCSI-MULTI/test.sh         | 10 +++++-----
+ test/TEST-40-NBD/test.sh                 |  8 ++++----
+ test/TEST-50-MULTINIC/test.sh            |  2 +-
+ test/TEST-60-BONDBRIDGEVLANIFCFG/test.sh |  2 +-
+ 17 files changed, 37 insertions(+), 37 deletions(-)
+
+diff --git a/test/TEST-01-BASIC/test.sh b/test/TEST-01-BASIC/test.sh
+index c47098ea..668a35d8 100755
+--- a/test/TEST-01-BASIC/test.sh
++++ b/test/TEST-01-BASIC/test.sh
+@@ -20,7 +20,7 @@ test_run() {
+ test_setup() {
+     rm -f -- $TESTDIR/root.ext3
+     # Create the blank file to use as a root filesystem
+-    dd if=/dev/null of=$TESTDIR/root.ext3 bs=1M seek=80
++    dd if=/dev/zero of=$TESTDIR/root.ext3 bs=1M count=80
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+diff --git a/test/TEST-02-SYSTEMD/test.sh b/test/TEST-02-SYSTEMD/test.sh
+index cf1fcaa5..5c0a54de 100755
+--- a/test/TEST-02-SYSTEMD/test.sh
++++ b/test/TEST-02-SYSTEMD/test.sh
+@@ -16,7 +16,7 @@ test_run() {
+ test_setup() {
+     rm -f -- $TESTDIR/root.ext3
+     # Create the blank file to use as a root filesystem
+-    dd if=/dev/null of=$TESTDIR/root.ext3 bs=1M seek=80
++    dd if=/dev/zero of=$TESTDIR/root.ext3 bs=1M count=80
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+diff --git a/test/TEST-03-USR-MOUNT/test.sh b/test/TEST-03-USR-MOUNT/test.sh
+index 5de7f4a1..5190f220 100755
+--- a/test/TEST-03-USR-MOUNT/test.sh
++++ b/test/TEST-03-USR-MOUNT/test.sh
+@@ -41,8 +41,8 @@ test_setup() {
+     rm -f -- $TESTDIR/root.btrfs
+     rm -f -- $TESTDIR/usr.btrfs
+     # Create the blank file to use as a root filesystem
+-    dd if=/dev/null of=$TESTDIR/root.btrfs bs=1M seek=160
+-    dd if=/dev/null of=$TESTDIR/usr.btrfs bs=1M seek=160
++    dd if=/dev/zero of=$TESTDIR/root.btrfs bs=1M count=160
++    dd if=/dev/zero of=$TESTDIR/usr.btrfs bs=1M count=160
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+diff --git a/test/TEST-04-FULL-SYSTEMD/test.sh b/test/TEST-04-FULL-SYSTEMD/test.sh
+index 3a544d7c..e3b23327 100755
+--- a/test/TEST-04-FULL-SYSTEMD/test.sh
++++ b/test/TEST-04-FULL-SYSTEMD/test.sh
+@@ -42,8 +42,8 @@ test_setup() {
+     rm -f -- $TESTDIR/root.btrfs
+     rm -f -- $TESTDIR/usr.btrfs
+     # Create the blank file to use as a root filesystem
+-    dd if=/dev/null of=$TESTDIR/root.btrfs bs=1M seek=320
+-    dd if=/dev/null of=$TESTDIR/usr.btrfs bs=1M seek=320
++    dd if=/dev/zero of=$TESTDIR/root.btrfs bs=1M count=320
++    dd if=/dev/zero of=$TESTDIR/usr.btrfs bs=1M count=320
+ 
+     export kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+diff --git a/test/TEST-10-RAID/test.sh b/test/TEST-10-RAID/test.sh
+index 981c1b9d..4203cfdc 100755
+--- a/test/TEST-10-RAID/test.sh
++++ b/test/TEST-10-RAID/test.sh
+@@ -19,7 +19,7 @@ test_setup() {
+     DISKIMAGE=$TESTDIR/TEST-10-RAID-root.img
+     # Create the blank file to use as a root filesystem
+     rm -f -- $DISKIMAGE
+-    dd if=/dev/null of=$DISKIMAGE bs=1M seek=128
++    dd if=/dev/zero of=$DISKIMAGE bs=1M count=128
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+diff --git a/test/TEST-11-LVM/test.sh b/test/TEST-11-LVM/test.sh
+index c718ad57..22643758 100755
+--- a/test/TEST-11-LVM/test.sh
++++ b/test/TEST-11-LVM/test.sh
+@@ -16,7 +16,7 @@ test_run() {
+ 
+ test_setup() {
+     # Create the blank file to use as a root filesystem
+-    dd if=/dev/null of=$TESTDIR/root.ext2 bs=1M seek=80
++    dd if=/dev/zero of=$TESTDIR/root.ext2 bs=1M count=80
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+diff --git a/test/TEST-12-RAID-DEG/test.sh b/test/TEST-12-RAID-DEG/test.sh
+index f8dc08d9..09eb28bb 100755
+--- a/test/TEST-12-RAID-DEG/test.sh
++++ b/test/TEST-12-RAID-DEG/test.sh
+@@ -25,7 +25,7 @@ client_run() {
+         return 1;
+     fi
+     rm -f -- $TESTDIR/marker.img
+-    dd if=/dev/null of=$TESTDIR/marker.img bs=1M seek=40
++    dd if=/dev/zero of=$TESTDIR/marker.img bs=1M count=40
+ 
+     echo "CLIENT TEST END: $@ [OK]"
+     return 0
+@@ -56,10 +56,10 @@ test_run() {
+ test_setup() {
+     # Create the blank file to use as a root filesystem
+     rm -f -- $TESTDIR/marker.img
+-    dd if=/dev/null of=$TESTDIR/marker.img bs=1M seek=40
+-    dd if=/dev/null of=$TESTDIR/disk1.img bs=1M seek=35
+-    dd if=/dev/null of=$TESTDIR/disk2.img bs=1M seek=35
+-    dd if=/dev/null of=$TESTDIR/disk3.img bs=1M seek=35
++    dd if=/dev/zero of=$TESTDIR/marker.img bs=1M count=40
++    dd if=/dev/zero of=$TESTDIR/disk1.img bs=1M count=35
++    dd if=/dev/zero of=$TESTDIR/disk2.img bs=1M count=35
++    dd if=/dev/zero of=$TESTDIR/disk3.img bs=1M count=35
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+diff --git a/test/TEST-13-ENC-RAID-LVM/test.sh b/test/TEST-13-ENC-RAID-LVM/test.sh
+index 580ade85..16ee8e66 100755
+--- a/test/TEST-13-ENC-RAID-LVM/test.sh
++++ b/test/TEST-13-ENC-RAID-LVM/test.sh
+@@ -50,7 +50,7 @@ test_run() {
+ test_setup() {
+     # Create the blank file to use as a root filesystem
+     rm -f -- $TESTDIR/root.ext2
+-    dd if=/dev/null of=$TESTDIR/root.ext2 bs=1M seek=134
++    dd if=/dev/zero of=$TESTDIR/root.ext2 bs=1M count=134
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+diff --git a/test/TEST-14-IMSM/test.sh b/test/TEST-14-IMSM/test.sh
+index 2f153ba3..1f822e4e 100755
+--- a/test/TEST-14-IMSM/test.sh
++++ b/test/TEST-14-IMSM/test.sh
+@@ -11,7 +11,7 @@ client_run() {
+     echo "CLIENT TEST START: $@"
+ 
+     rm -f -- $TESTDIR/marker.img
+-    dd if=/dev/null of=$TESTDIR/marker.img bs=1M seek=1
++    dd if=/dev/zero of=$TESTDIR/marker.img bs=1M count=1
+ 
+     $testdir/run-qemu \
+         -drive format=raw,index=0,media=disk,file=$TESTDIR/marker.img \
+@@ -53,9 +53,9 @@ test_setup() {
+     rm -f -- $TESTDIR/marker.img
+     rm -f -- $TESTDIR/disk1
+     rm -f -- $TESTDIR/disk2
+-    dd if=/dev/null of=$TESTDIR/marker.img bs=1M seek=1
+-    dd if=/dev/null of=$TESTDIR/disk1 bs=1M seek=104
+-    dd if=/dev/null of=$TESTDIR/disk2 bs=1M seek=104
++    dd if=/dev/zero of=$TESTDIR/marker.img bs=1M count=1
++    dd if=/dev/zero of=$TESTDIR/disk1 bs=1M count=104
++    dd if=/dev/zero of=$TESTDIR/disk2 bs=1M count=104
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+diff --git a/test/TEST-15-BTRFSRAID/test.sh b/test/TEST-15-BTRFSRAID/test.sh
+index 435e52be..227daaba 100755
+--- a/test/TEST-15-BTRFSRAID/test.sh
++++ b/test/TEST-15-BTRFSRAID/test.sh
+@@ -21,7 +21,7 @@ test_setup() {
+     # Create the blank file to use as a root filesystem
+     DISKIMAGE=$TESTDIR/TEST-15-BTRFSRAID-root.img
+     rm -f -- $DISKIMAGE
+-    dd if=/dev/null of=$DISKIMAGE bs=1M seek=1024
++    dd if=/dev/zero of=$DISKIMAGE bs=1M count=1024
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+diff --git a/test/TEST-17-LVM-THIN/test.sh b/test/TEST-17-LVM-THIN/test.sh
+index e4755f78..8ab30a45 100755
+--- a/test/TEST-17-LVM-THIN/test.sh
++++ b/test/TEST-17-LVM-THIN/test.sh
+@@ -16,7 +16,7 @@ test_run() {
+ 
+ test_setup() {
+     # Create the blank file to use as a root filesystem
+-    dd if=/dev/null of=$TESTDIR/root.ext2 bs=1M seek=92
++    dd if=/dev/zero of=$TESTDIR/root.ext2 bs=1M count=92
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+diff --git a/test/TEST-20-NFS/test.sh b/test/TEST-20-NFS/test.sh
+index 9d5493c7..53d1d804 100755
+--- a/test/TEST-20-NFS/test.sh
++++ b/test/TEST-20-NFS/test.sh
+@@ -225,7 +225,7 @@ test_run() {
+ 
+ test_setup() {
+     # Make server root
+-    dd if=/dev/null of=$TESTDIR/server.ext3 bs=1M seek=120
++    dd if=/dev/zero of=$TESTDIR/server.ext3 bs=1M count=120
+     mke2fs -j -F $TESTDIR/server.ext3
+     mkdir $TESTDIR/mnt
+     mount -o loop $TESTDIR/server.ext3 $TESTDIR/mnt
+diff --git a/test/TEST-30-ISCSI/test.sh b/test/TEST-30-ISCSI/test.sh
+index a8aee221..2f37f5c9 100755
+--- a/test/TEST-30-ISCSI/test.sh
++++ b/test/TEST-30-ISCSI/test.sh
+@@ -129,9 +129,9 @@ test_setup() {
+     fi
+ 
+     # Create the blank file to use as a root filesystem
+-    dd if=/dev/null of=$TESTDIR/root.ext3 bs=1M seek=45
+-    dd if=/dev/null of=$TESTDIR/iscsidisk2.img bs=1M seek=45
+-    dd if=/dev/null of=$TESTDIR/iscsidisk3.img bs=1M seek=45
++    dd if=/dev/zero of=$TESTDIR/root.ext3 bs=1M count=45
++    dd if=/dev/zero of=$TESTDIR/iscsidisk2.img bs=1M count=45
++    dd if=/dev/zero of=$TESTDIR/iscsidisk3.img bs=1M count=45
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+@@ -182,7 +182,7 @@ test_setup() {
+ 
+ 
+     # Need this so kvm-qemu will boot (needs non-/dev/zero local disk)
+-    if ! dd if=/dev/null of=$TESTDIR/client.img bs=1M seek=1; then
++    if ! dd if=/dev/zero of=$TESTDIR/client.img bs=1M count=1; then
+         echo "Unable to make client sdb image" 1>&2
+         return 1
+     fi
+@@ -198,7 +198,7 @@ test_setup() {
+     rm -- $TESTDIR/client.img
+ 
+     # Make server root
+-    dd if=/dev/null of=$TESTDIR/server.ext3 bs=1M seek=60
++    dd if=/dev/zero of=$TESTDIR/server.ext3 bs=1M count=60
+     mkfs.ext3 -j -F $TESTDIR/server.ext3
+     mkdir $TESTDIR/mnt
+     mount -o loop $TESTDIR/server.ext3 $TESTDIR/mnt
+diff --git a/test/TEST-35-ISCSI-MULTI/test.sh b/test/TEST-35-ISCSI-MULTI/test.sh
+index 740ab918..54700609 100755
+--- a/test/TEST-35-ISCSI-MULTI/test.sh
++++ b/test/TEST-35-ISCSI-MULTI/test.sh
+@@ -144,9 +144,9 @@ test_setup() {
+     fi
+ 
+     # Create the blank file to use as a root filesystem
+-    dd if=/dev/null of=$TESTDIR/root.ext3 bs=1M seek=90
+-    dd if=/dev/null of=$TESTDIR/iscsidisk2.img bs=1M seek=90
+-    dd if=/dev/null of=$TESTDIR/iscsidisk3.img bs=1M seek=90
++    dd if=/dev/zero of=$TESTDIR/root.ext3 bs=1M count=90
++    dd if=/dev/zero of=$TESTDIR/iscsidisk2.img bs=1M count=90
++    dd if=/dev/zero of=$TESTDIR/iscsidisk3.img bs=1M count=90
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+@@ -197,7 +197,7 @@ test_setup() {
+ 
+ 
+     # Need this so kvm-qemu will boot (needs non-/dev/zero local disk)
+-    if ! dd if=/dev/null of=$TESTDIR/client.img bs=1M seek=1; then
++    if ! dd if=/dev/zero of=$TESTDIR/client.img bs=1M count=1; then
+         echo "Unable to make client sdb image" 1>&2
+         return 1
+     fi
+@@ -213,7 +213,7 @@ test_setup() {
+     rm -- $TESTDIR/client.img
+ 
+     # Make server root
+-    dd if=/dev/null of=$TESTDIR/server.ext3 bs=1M seek=60
++    dd if=/dev/zero of=$TESTDIR/server.ext3 bs=1M count=60
+     mkfs.ext3 -j -F $TESTDIR/server.ext3
+     mkdir $TESTDIR/mnt
+     mount -o loop $TESTDIR/server.ext3 $TESTDIR/mnt
+diff --git a/test/TEST-40-NBD/test.sh b/test/TEST-40-NBD/test.sh
+index f06c36c3..b6c45f01 100755
+--- a/test/TEST-40-NBD/test.sh
++++ b/test/TEST-40-NBD/test.sh
+@@ -209,8 +209,8 @@ client_run() {
+ 
+ make_encrypted_root() {
+     # Create the blank file to use as a root filesystem
+-    dd if=/dev/null of=$TESTDIR/encrypted.ext2 bs=1M seek=80
+-    dd if=/dev/null of=$TESTDIR/flag.img bs=1M seek=1
++    dd if=/dev/zero of=$TESTDIR/encrypted.ext2 bs=1M count=80
++    dd if=/dev/zero of=$TESTDIR/flag.img bs=1M count=1
+ 
+     kernel=$KVERSION
+     # Create what will eventually be our root filesystem onto an overlay
+@@ -280,7 +280,7 @@ make_encrypted_root() {
+ }
+ 
+ make_client_root() {
+-    dd if=/dev/null of=$TESTDIR/nbd.ext2 bs=1M seek=120
++    dd if=/dev/zero of=$TESTDIR/nbd.ext2 bs=1M count=120
+     mke2fs -F -j $TESTDIR/nbd.ext2
+     mkdir $TESTDIR/mnt
+     if ! mount -o loop $TESTDIR/nbd.ext2 $TESTDIR/mnt; then
+@@ -325,7 +325,7 @@ make_client_root() {
+ }
+ 
+ make_server_root() {
+-    dd if=/dev/null of=$TESTDIR/server.ext2 bs=1M seek=120
++    dd if=/dev/zero of=$TESTDIR/server.ext2 bs=1M count=120
+     mke2fs -F $TESTDIR/server.ext2
+     mkdir $TESTDIR/mnt
+     mount -o loop $TESTDIR/server.ext2 $TESTDIR/mnt
+diff --git a/test/TEST-50-MULTINIC/test.sh b/test/TEST-50-MULTINIC/test.sh
+index b4326d5a..be87caab 100755
+--- a/test/TEST-50-MULTINIC/test.sh
++++ b/test/TEST-50-MULTINIC/test.sh
+@@ -173,7 +173,7 @@ test_client() {
+ 
+ test_setup() {
+     # Make server root
+-    dd if=/dev/null of="$TESTDIR"/server.ext3 bs=1M seek=120
++    dd if=/dev/zero of="$TESTDIR"/server.ext3 bs=1M count=120
+     mke2fs -j -F -- "$TESTDIR"/server.ext3
+     mkdir -- "$TESTDIR"/mnt
+     mount -o loop -- "$TESTDIR"/server.ext3 "$TESTDIR"/mnt
+diff --git a/test/TEST-60-BONDBRIDGEVLANIFCFG/test.sh b/test/TEST-60-BONDBRIDGEVLANIFCFG/test.sh
+index 72826a5d..accfa006 100755
+--- a/test/TEST-60-BONDBRIDGEVLANIFCFG/test.sh
++++ b/test/TEST-60-BONDBRIDGEVLANIFCFG/test.sh
+@@ -199,7 +199,7 @@ root=nfs:192.168.50.1:/nfs/client bootdev=br0
+ 
+ test_setup() {
+     # Make server root
+-    dd if=/dev/null of="$TESTDIR"/server.ext3 bs=1M seek=120
++    dd if=/dev/zero of="$TESTDIR"/server.ext3 bs=1M count=120
+     mke2fs -j -F -- "$TESTDIR"/server.ext3
+     mkdir -- "$TESTDIR"/mnt
+     mount -o loop -- "$TESTDIR"/server.ext3 "$TESTDIR"/mnt
+

@@ -1,0 +1,26 @@
+From 7a04712ad0efa9afa3759656ea1b26db40a8a29e Mon Sep 17 00:00:00 2001
+From: Daniel Molkentin <dmolkentin@suse.com>
+Date: Mon, 21 Jan 2019 14:40:06 +0100
+Subject: [PATCH] 95zfcp_rules/parse-zfcp.sh: remove rule existence check
+
+Reference: bsc#1008352
+
+Original-Patch-By: Michal Suchanek <msuchanek@suse.com>
+---
+ modules.d/95zfcp_rules/parse-zfcp.sh | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/modules.d/95zfcp_rules/parse-zfcp.sh b/modules.d/95zfcp_rules/parse-zfcp.sh
+index 7defb04f..2b62012b 100755
+--- a/modules.d/95zfcp_rules/parse-zfcp.sh
++++ b/modules.d/95zfcp_rules/parse-zfcp.sh
+@@ -22,8 +22,6 @@ create_udev_rule() {
+         return 0;
+     fi
+ 
+-    [ -e ${_rule} ] && return 0
+-
+     if [ ! -f "$_rule" ] ; then
+         cat > $_rule <<EOF
+ ACTION=="add", SUBSYSTEM=="ccw", KERNEL=="$ccw", IMPORT{program}="collect $ccw %k ${ccw} zfcp"
+

@@ -1,0 +1,35 @@
+From db44331dc4513886e83e387604887033868c5214 Mon Sep 17 00:00:00 2001
+From: Daniel Molkentin <dmolkentin@suse.com>
+Date: Fri, 13 Mar 2020 11:39:46 +0100
+Subject: [PATCH] Makefile: really make externally defined CFLAGS work
+
+The fix in aed52a6cfb43ebea372328fd5837c1f341c3f0df does not
+work (second line will be ignored on override), so expand the implicitly
+defined rule and add them there.
+---
+ Makefile | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 0cc8b390..7eb31847 100644
+--- a/Makefile
++++ b/Makefile
+@@ -19,7 +19,6 @@ sysconfdir ?= ${prefix}/etc
+ bindir ?= ${prefix}/bin
+ mandir ?= ${prefix}/share/man
+ CFLAGS ?= -O2 -g -Wall -std=gnu99 -D_FILE_OFFSET_BITS=64 -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2
+-CFLAGS += $(KMOD_CFLAGS)
+ bashcompletiondir ?= ${datadir}/bash-completion/completions
+ pkgconfigdatadir ?= $(datadir)/pkgconfig
+ 
+@@ -50,6 +49,9 @@ manpages = $(man1pages) $(man5pages) $(man7pages) $(man8pages)
+ 
+ all: dracut-version.sh dracut.pc dracut-install skipcpio/skipcpio
+ 
++%.o : %.c
++	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(KMOD_CFLAGS) $< -o $@
++
+ DRACUT_INSTALL_OBJECTS = \
+         install/dracut-install.o \
+         install/hashmap.o\
+

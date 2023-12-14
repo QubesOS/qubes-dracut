@@ -1,0 +1,422 @@
+From 49c4172f4eef6e2015615e132b199a7ec0699ffc Mon Sep 17 00:00:00 2001
+From: Kairui Song <kasong@redhat.com>
+Date: Wed, 8 Apr 2020 16:39:52 +0800
+Subject: [PATCH] Remove memtrace-ko and rd.memdebug=4 support in dracut
+
+This feature could be off loaded to memstrack, which have better
+accurecy, better performance, and have more detailed tracing features.
+
+Also simplify make_trace_mem a bit.
+
+And currently rd.memdebug=4 is unstable, fails from time to time.
+---
+ dracut.cmdline.7.asc                             |   4 +--
+ modules.d/98dracut-systemd/dracut-cmdline.sh     |   2 +-
+ modules.d/98dracut-systemd/dracut-pre-mount.sh   |   2 +-
+ modules.d/98dracut-systemd/dracut-pre-pivot.sh   |   2 +-
+ modules.d/98dracut-systemd/dracut-pre-trigger.sh |   2 +-
+ modules.d/99base/dracut-lib.sh                   |  44 +++++-------------------
+ modules.d/99base/init.sh                         |   8 ++---
+ modules.d/99base/memtrace-ko.sh                  | 191 -----------------------------------------------------------------------------------------------------
+ modules.d/99base/module-setup.sh                 |   1 -
+ 9 files changed, 18 insertions(+), 238 deletions(-)
+
+diff --git a/dracut.cmdline.7.asc b/dracut.cmdline.7.asc
+index 2b38aa33..c53601ea 100644
+--- a/dracut.cmdline.7.asc
++++ b/dracut.cmdline.7.asc
+@@ -188,9 +188,9 @@ It should be attached to any report about dracut problems.
+     _/run/initramfs/init.log_.
+     If "quiet" is set, it also logs to the console.
+ 
+-**rd.memdebug=[0-4]**::
++**rd.memdebug=[0-3]**::
+     Print memory usage info at various points, set the verbose level from 0 to 4.
+-+    
+++
+     Higher level means more debugging output:
+ +
+ ----
+diff --git a/modules.d/98dracut-systemd/dracut-cmdline.sh b/modules.d/98dracut-systemd/dracut-cmdline.sh
+index bff9435a..6c6ee026 100755
+--- a/modules.d/98dracut-systemd/dracut-cmdline.sh
++++ b/modules.d/98dracut-systemd/dracut-cmdline.sh
+@@ -42,7 +42,7 @@ export root
+ export rflags
+ export fstype
+ 
+-make_trace_mem "hook cmdline" '1+:mem' '1+:iomem' '3+:slab' '4+:komem'
++make_trace_mem "hook cmdline" '1+:mem' '1+:iomem' '3+:slab'
+ # run scriptlets to parse the command line
+ getarg 'rd.break=cmdline' -d 'rdbreak=cmdline' && emergency_shell -n cmdline "Break before cmdline"
+ source_hook cmdline
+diff --git a/modules.d/98dracut-systemd/dracut-pre-mount.sh b/modules.d/98dracut-systemd/dracut-pre-mount.sh
+index a3b9d291..ae511286 100755
+--- a/modules.d/98dracut-systemd/dracut-pre-mount.sh
++++ b/modules.d/98dracut-systemd/dracut-pre-mount.sh
+@@ -8,7 +8,7 @@ type getarg >/dev/null 2>&1 || . /lib/dracut-lib.sh
+ 
+ source_conf /etc/conf.d
+ 
+-make_trace_mem "hook pre-mount" '1:shortmem' '2+:mem' '3+:slab' '4+:komem'
++make_trace_mem "hook pre-mount" '1:shortmem' '2+:mem' '3+:slab'
+ # pre pivot scripts are sourced just before we doing cleanup and switch over
+ # to the new root.
+ getarg 'rd.break=pre-mount' 'rdbreak=pre-mount' && emergency_shell -n pre-mount "Break pre-mount"
+diff --git a/modules.d/98dracut-systemd/dracut-pre-pivot.sh b/modules.d/98dracut-systemd/dracut-pre-pivot.sh
+index dc9a2504..96e6f8ca 100755
+--- a/modules.d/98dracut-systemd/dracut-pre-pivot.sh
++++ b/modules.d/98dracut-systemd/dracut-pre-pivot.sh
+@@ -8,7 +8,7 @@ type getarg >/dev/null 2>&1 || . /lib/dracut-lib.sh
+ 
+ source_conf /etc/conf.d
+ 
+-make_trace_mem "hook pre-pivot" '1:shortmem' '2+:mem' '3+:slab' '4+:komem'
++make_trace_mem "hook pre-pivot" '1:shortmem' '2+:mem' '3+:slab'
+ # pre pivot scripts are sourced just before we doing cleanup and switch over
+ # to the new root.
+ getarg 'rd.break=pre-pivot' 'rdbreak=pre-pivot' && emergency_shell -n pre-pivot "Break pre-pivot"
+diff --git a/modules.d/98dracut-systemd/dracut-pre-trigger.sh b/modules.d/98dracut-systemd/dracut-pre-trigger.sh
+index 7cd821ed..a1a33960 100755
+--- a/modules.d/98dracut-systemd/dracut-pre-trigger.sh
++++ b/modules.d/98dracut-systemd/dracut-pre-trigger.sh
+@@ -8,7 +8,7 @@ type getarg >/dev/null 2>&1 || . /lib/dracut-lib.sh
+ 
+ source_conf /etc/conf.d
+ 
+-make_trace_mem "hook pre-trigger" '1:shortmem' '2+:mem' '3+:slab' '4+:komem'
++make_trace_mem "hook pre-trigger" '1:shortmem' '2+:mem' '3+:slab'
+ 
+ source_hook pre-trigger
+ 
+diff --git a/modules.d/99base/dracut-lib.sh b/modules.d/99base/dracut-lib.sh
+index c57523d3..b7020892 100755
+--- a/modules.d/99base/dracut-lib.sh
++++ b/modules.d/99base/dracut-lib.sh
+@@ -1187,50 +1187,25 @@ are_lists_eq() {
+ 
+ setmemdebug() {
+     if [ -z "$DEBUG_MEM_LEVEL" ]; then
+-        export DEBUG_MEM_LEVEL=$(getargnum 0 0 4 rd.memdebug)
++        export DEBUG_MEM_LEVEL=$(getargnum 0 0 3 rd.memdebug)
+     fi
+ }
+ 
+ setmemdebug
+ 
+-cleanup_trace_mem()
+-{
+-    # tracekomem based on kernel trace needs cleanup after use.
+-    if [ "$DEBUG_MEM_LEVEL" -eq 4 ]; then
+-        tracekomem --cleanup
+-    fi
+-}
+-
+-# parameters: msg [trace_level:trace]...
+-make_trace_mem()
+-{
+-    local msg
+-    msg="$1"
+-    shift
+-    if [ -n "$DEBUG_MEM_LEVEL" ] && [ "$DEBUG_MEM_LEVEL" -gt 0 ]; then
+-        make_trace show_memstats $DEBUG_MEM_LEVEL "[debug_mem]" "$msg" "$@" >&2
+-    fi
+-}
+-
+ # parameters: func log_level prefix msg [trace_level:trace]...
+-make_trace()
++make_trace_mem()
+ {
+-    local func log_level prefix msg msg_printed
++    local log_level prefix msg msg_printed
+     local trace trace_level trace_in_higher_levels insert_trace
+ 
+-    func=$1
+-    shift
+-
+-    log_level=$1
+-    shift
+-
+-    prefix=$1
+-    shift
+-
+     msg=$1
+     shift
+ 
+-    if [ -z "$log_level" ]; then
++    prefix='[debug_mem]'
++    log_level=$DEBUG_MEM_LEVEL
++
++    if [ -z "$log_level" ] || [ "$log_level" -le 0 ]; then
+         return
+     fi
+ 
+@@ -1263,7 +1238,7 @@ make_trace()
+                 echo "$prefix $msg"
+                 msg_printed=1
+             fi
+-            $func $trace
++            show_memstats $trace
+         fi
+         shift
+     done
+@@ -1285,9 +1260,6 @@ show_memstats()
+         iomem)
+             cat /proc/iomem
+             ;;
+-        komem)
+-            tracekomem
+-            ;;
+     esac
+ }
+ 
+diff --git a/modules.d/99base/init.sh b/modules.d/99base/init.sh
+index 1111d09b..148ce831 100755
+--- a/modules.d/99base/init.sh
++++ b/modules.d/99base/init.sh
+@@ -131,7 +131,7 @@ if ! getargbool 1 'rd.hostonly'; then
+ fi
+ 
+ # run scriptlets to parse the command line
+-make_trace_mem "hook cmdline" '1+:mem' '1+:iomem' '3+:slab' '4+:komem'
++make_trace_mem "hook cmdline" '1+:mem' '1+:iomem' '3+:slab'
+ getarg 'rd.break=cmdline' -d 'rdbreak=cmdline' && emergency_shell -n cmdline "Break before cmdline"
+ source_hook cmdline
+ 
+@@ -160,7 +160,7 @@ fi
+ 
+ udevproperty "hookdir=$hookdir"
+ 
+-make_trace_mem "hook pre-trigger" '1:shortmem' '2+:mem' '3+:slab' '4+:komem'
++make_trace_mem "hook pre-trigger" '1:shortmem' '2+:mem' '3+:slab'
+ getarg 'rd.break=pre-trigger' -d 'rdbreak=pre-trigger' && emergency_shell -n pre-trigger "Break before pre-trigger"
+ source_hook pre-trigger
+ 
+@@ -230,7 +230,7 @@ unset RDRETRY
+ 
+ # pre-mount happens before we try to mount the root filesystem,
+ # and happens once.
+-make_trace_mem "hook pre-mount" '1:shortmem' '2+:mem' '3+:slab' '4+:komem'
++make_trace_mem "hook pre-mount" '1:shortmem' '2+:mem' '3+:slab'
+ getarg 'rd.break=pre-mount' -d 'rdbreak=pre-mount' && emergency_shell -n pre-mount "Break pre-mount"
+ source_hook pre-mount
+ 
+@@ -266,7 +266,7 @@ done
+ 
+ # pre pivot scripts are sourced just before we doing cleanup and switch over
+ # to the new root.
+-make_trace_mem "hook pre-pivot" '1:shortmem' '2+:mem' '3+:slab' '4+:komem'
++make_trace_mem "hook pre-pivot" '1:shortmem' '2+:mem' '3+:slab'
+ getarg 'rd.break=pre-pivot' -d 'rdbreak=pre-pivot' && emergency_shell -n pre-pivot "Break pre-pivot"
+ source_hook pre-pivot
+ 
+diff --git a/modules.d/99base/memtrace-ko.sh b/modules.d/99base/memtrace-ko.sh
+deleted file mode 100755
+index ee035e15..00000000
+--- a/modules.d/99base/memtrace-ko.sh
++++ /dev/null
+@@ -1,191 +0,0 @@
+-#!/bin/sh
+-
+-# Try to find out kernel modules with large total memory allocation during loading.
+-# For large slab allocation, it will fall into buddy, also not trace "mm_page_free"
+-# considering large free is quite rare for module_init, thus saving tons of events
+-# to avoid trace data overwritten.
+-#
+-# Therefore, tracing "mm_page_alloc"alone should be enough for the purpose.
+-
+-# "sys/kernel/tracing" has the priority if exists.
+-get_trace_base() {
+-    # trace access through debugfs would be obsolete if "/sys/kernel/tracing" is available.
+-    if [ -d "/sys/kernel/tracing" ]; then
+-        echo "/sys/kernel"
+-    else
+-        echo "/sys/kernel/debug"
+-    fi
+-}
+-
+-# We want to enable these trace events.
+-get_want_events() {
+-    echo "module:module_put module:module_load kmem:mm_page_alloc"
+-}
+-
+-get_event_filter() {
+-    echo "comm == systemd-udevd || comm == modprobe || comm == insmod"
+-}
+-
+-is_trace_ready() {
+-    local trace_base want_events current_events
+-
+-    trace_base=$(get_trace_base)
+-    ! [ -f "$trace_base/tracing/trace" ] && return 1
+-
+-    [ "$(cat $trace_base/tracing/tracing_on)" -eq 0 ] && return 1
+-
+-    # Also check if trace events were properly setup.
+-    want_events=$(get_want_events)
+-    current_events=$(echo $(cat $trace_base/tracing/set_event))
+-    [ "$current_events" != "$want_events" ] && return 1
+-
+-    return 0
+-}
+-
+-prepare_trace() {
+-    local trace_base
+-
+-    trace_base=$(get_trace_base)
+-    # old debugfs interface case.
+-    if ! [ -d "$trace_base/tracing" ]; then
+-        mount none -t debugfs $trace_base
+-    # new tracefs interface case.
+-    elif ! [ -f "$trace_base/tracing/trace" ]; then
+-        mount none -t tracefs "$trace_base/tracing"
+-    fi
+-
+-    if ! [ -f "$trace_base/tracing/trace" ]; then
+-        echo "WARN: Mount trace failed for kernel module memory analyzing."
+-        return 1
+-    fi
+-
+-    # Active all the wanted trace events.
+-    echo "$(get_want_events)" > $trace_base/tracing/set_event
+-
+-    # There are three kinds of known applications for module loading:
+-    # "systemd-udevd", "modprobe" and "insmod".
+-    # Set them as the global events filter.
+-    # NOTE: Some kernel may not support this format of filter, anyway
+-    #       the operation will fail and it doesn't matter.
+-    echo "$(get_event_filter)" > $trace_base/tracing/events/kmem/filter 2>&1
+-    echo "$(get_event_filter)" > $trace_base/tracing/events/module/filter 2>&1
+-
+-    # Set the number of comm-pid if supported.
+-    if [ -f "$trace_base/tracing/saved_cmdlines_size" ]; then
+-        # Thanks to filters, 4096 is big enough(also well supported).
+-        echo 4096 > $trace_base/tracing/saved_cmdlines_size
+-    fi
+-
+-    # Enable and clear trace data for the first time.
+-    echo 1 > $trace_base/tracing/tracing_on
+-    echo > $trace_base/tracing/trace
+-    echo "Prepare trace success."
+-    return 0
+-}
+-
+-order_to_pages()
+-{
+-    local pages=1
+-    local order=$1
+-
+-    while [ "$order" != 0 ]; do
+-        order=$((order-1))
+-        pages=$(($pages*2))
+-	done
+-
+-    echo $pages
+-}
+-
+-parse_trace_data() {
+-    local module_name tmp_eval pages
+-
+-    cat "$(get_trace_base)/tracing/trace" | while read pid cpu flags ts function args
+-    do
+-        # Skip comment lines
+-        if [ "$pid" = "#" ]; then
+-            continue
+-        fi
+-
+-        pid=${pid##*-}
+-        function=${function%:}
+-        if [ "$function" = "module_load" ]; then
+-            # One module is being loaded, save the task pid for tracking.
+-            # Remove the trailing after whitespace, there may be the module flags.
+-            module_name=${args%% *}
+-            # Mark current_module to track the task.
+-            eval current_module_$pid="$module_name"
+-            tmp_eval=$(eval echo '${module_loaded_'${module_name}'}')
+-            if [ -n "$tmp_eval" ]; then
+-                echo "WARN: \"$module_name\" was loaded multiple times!"
+-            fi
+-            eval unset module_loaded_$module_name
+-            eval nr_alloc_pages_$module_name=0
+-            continue
+-        fi
+-
+-        module_name=$(eval echo '${current_module_'${pid}'}')
+-        if [ -z "$module_name" ]; then
+-            continue
+-        fi
+-
+-        # Once we get here, the task is being tracked(is loading a module).
+-        if [ "$function" = "module_put" ]; then
+-            # Mark the module as loaded when the first module_put event happens after module_load.
+-            tmp_eval=$(eval echo '${nr_alloc_pages_'${module_name}'}')
+-            echo "$tmp_eval pages consumed by \"$module_name\""
+-            eval module_loaded_$module_name=1
+-            # Module loading finished, so untrack the task.
+-            eval unset current_module_$pid
+-            eval unset nr_alloc_pages_$module_name
+-            continue
+-        fi
+-
+-        if [ "$function" = "mm_page_alloc" ]; then
+-            # Get order first, then convert to actual pages.
+-            pages=$(echo $args | sed -e 's/.*order=\([0-9]*\) .*/\1/')
+-            pages=$(order_to_pages "$pages")
+-            tmp_eval=$(eval echo '${nr_alloc_pages_'${module_name}'}')
+-            eval nr_alloc_pages_$module_name="$(($tmp_eval+$pages))"
+-        fi
+-    done
+-}
+-
+-cleanup_trace() {
+-    local trace_base
+-
+-    if is_trace_ready; then
+-        trace_base=$(get_trace_base)
+-        echo 0 > $trace_base/tracing/tracing_on
+-        echo > $trace_base/tracing/trace
+-        echo > $trace_base/tracing/set_event
+-        echo 0 > $trace_base/tracing/events/kmem/filter
+-        echo 0 > $trace_base/tracing/events/module/filter
+-    fi
+-}
+-
+-show_usage() {
+-    echo "Find out kernel modules with large memory consumption during loading based on trace."
+-    echo "Usage:"
+-    echo "1) run it first to setup trace."
+-    echo "2) run again to parse the trace data if any."
+-    echo "3) run with \"--cleanup\" option to cleanup trace after use."
+-}
+-
+-if [ "$1" = "--help" ]; then
+-    show_usage
+-    exit 0
+-fi
+-
+-if [ "$1" = "--cleanup" ]; then
+-    cleanup_trace
+-    exit 0
+-fi
+-
+-if is_trace_ready ; then
+-    echo "tracekomem - Rough memory consumption by loading kernel modules (larger value with better accuracy)"
+-    parse_trace_data
+-else
+-    prepare_trace
+-fi
+-
+-exit $?
+diff --git a/modules.d/99base/module-setup.sh b/modules.d/99base/module-setup.sh
+index 3a2246b4..c9e3ebcb 100755
+--- a/modules.d/99base/module-setup.sh
++++ b/modules.d/99base/module-setup.sh
+@@ -39,7 +39,6 @@ install() {
+     inst_script "$moddir/initqueue.sh" "/sbin/initqueue"
+     inst_script "$moddir/loginit.sh" "/sbin/loginit"
+     inst_script "$moddir/rdsosreport.sh" "/sbin/rdsosreport"
+-    inst_script "$moddir/memtrace-ko.sh" "/sbin/tracekomem"
+ 
+     [ -e "${initdir}/lib" ] || mkdir -m 0755 -p ${initdir}/lib
+     mkdir -m 0755 -p ${initdir}/lib/dracut
+

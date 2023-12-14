@@ -1,0 +1,32 @@
+From 17d62d12065c264d899609cf69e8d913fc84460d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C4=90o=C3=A0n=20Tr=E1=BA=A7n=20C=C3=B4ng=20Danh?=
+ <congdanhqx@gmail.com>
+Date: Sat, 14 Mar 2020 11:44:47 +0700
+Subject: [PATCH] cryptroot-ask: no warn if /run/cryptsetup exist
+
+In either case:
+- encrypted device is decrypted, udev will trigger device changes again,
+- multiple encrypted device,
+
+cryptroot-ask will run multiple time, then report:
+> mkdir: cannot create directory '/run/cryptsetup': File exists
+
+Pass `-p` into mkdir to ignore that warning.
+---
+ modules.d/90crypt/cryptroot-ask.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules.d/90crypt/cryptroot-ask.sh b/modules.d/90crypt/cryptroot-ask.sh
+index e1f17975..97047ae9 100755
+--- a/modules.d/90crypt/cryptroot-ask.sh
++++ b/modules.d/90crypt/cryptroot-ask.sh
+@@ -8,7 +8,7 @@ NEWROOT=${NEWROOT:-"/sysroot"}
+ 
+ . /lib/dracut-lib.sh
+ 
+-mkdir -m 0700 /run/cryptsetup
++mkdir -p -m 0700 /run/cryptsetup
+ 
+ # if device name is /dev/dm-X, convert to /dev/mapper/name
+ if [ "${1##/dev/dm-}" != "$1" ]; then
+

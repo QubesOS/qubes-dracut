@@ -1,0 +1,23 @@
+From 3b396a7d5092cec4c7b185bda63906069b8ec320 Mon Sep 17 00:00:00 2001
+From: Harald Hoyer <harald@redhat.com>
+Date: Thu, 12 Mar 2020 13:22:10 +0100
+Subject: [PATCH] TEST-41-NBD-NM/Makefile: should be based on TEST-40-NBD not
+ TEST-20-NFS
+
+---
+ test/TEST-41-NBD-NM/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/TEST-41-NBD-NM/Makefile b/test/TEST-41-NBD-NM/Makefile
+index b19122a1..47c90c31 100644
+--- a/test/TEST-41-NBD-NM/Makefile
++++ b/test/TEST-41-NBD-NM/Makefile
+@@ -1,6 +1,6 @@
+ .PHONY: all setup clean run
+ 
+-BASETEST=../TEST-20-NFS
++BASETEST=../TEST-40-NBD
+ 
+ all:
+ 	@$(MAKE) NM=1 -s --no-print-directory -C $(BASETEST) all
+

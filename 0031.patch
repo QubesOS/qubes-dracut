@@ -1,0 +1,35 @@
+From b68930ed3dd29184f3e6c87582377e7501b3b276 Mon Sep 17 00:00:00 2001
+From: Patrick Talbert <ptalbert@redhat.com>
+Date: Wed, 18 Mar 2020 15:58:48 +0100
+Subject: [PATCH] dhclient-script: Fix typo in output of  BOUND & BOUND6 cases
+
+No bonding going on here.
+
+Signed-off-by: Patrick Talbert <ptalbert@redhat.com>
+---
+ modules.d/35network-legacy/dhclient-script.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/modules.d/35network-legacy/dhclient-script.sh b/modules.d/35network-legacy/dhclient-script.sh
+index 84b65e89..fd92752b 100755
+--- a/modules.d/35network-legacy/dhclient-script.sh
++++ b/modules.d/35network-legacy/dhclient-script.sh
+@@ -164,7 +164,7 @@ case $reason in
+         ;;
+ 
+     BOUND)
+-        echo "dhcp: BOND setting $netif"
++        echo "dhcp: BOUND setting up $netif"
+         unset layer2
+         if [ -f /sys/class/net/$netif/device/layer2 ]; then
+             read layer2 < /sys/class/net/$netif/device/layer2
+@@ -223,7 +223,7 @@ case $reason in
+         ;;
+ 
+     BOUND6)
+-        echo "dhcp: BOND6 setting $netif"
++        echo "dhcp: BOUND6 setting up $netif"
+         setup_interface6
+ 
+         set | while read line || [ -n "$line" ]; do
+

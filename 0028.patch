@@ -1,0 +1,25 @@
+From c490ea8b2be52910c8ce70d08717cf1996c0d732 Mon Sep 17 00:00:00 2001
+From: Daniel Molkentin <dmolkentin@suse.com>
+Date: Sat, 21 Apr 2018 00:11:17 +0200
+Subject: [PATCH] Make externally defined CFLAGS work
+
+---
+ Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 02e2c4b5..0cc8b390 100644
+--- a/Makefile
++++ b/Makefile
+@@ -18,8 +18,8 @@ pkglibdir ?= ${libdir}/dracut
+ sysconfdir ?= ${prefix}/etc
+ bindir ?= ${prefix}/bin
+ mandir ?= ${prefix}/share/man
+-CFLAGS ?= -O2 -g -Wall
+-CFLAGS += -std=gnu99 -D_FILE_OFFSET_BITS=64 -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 $(KMOD_CFLAGS)
++CFLAGS ?= -O2 -g -Wall -std=gnu99 -D_FILE_OFFSET_BITS=64 -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2
++CFLAGS += $(KMOD_CFLAGS)
+ bashcompletiondir ?= ${datadir}/bash-completion/completions
+ pkgconfigdatadir ?= $(datadir)/pkgconfig
+ 
+
