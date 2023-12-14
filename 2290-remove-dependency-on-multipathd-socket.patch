@@ -1,0 +1,41 @@
+From 71696ec83fce0b20a3cf489b970a200e44227d78 Mon Sep 17 00:00:00 2001
+From: Tianhao Chai <cth451@gmail.com>
+Date: Mon, 10 Apr 2023 20:36:12 -0400
+Subject: [PATCH] fix(multipath): remove dependency on multipathd.socket
+
+This reverts commit e39ff407eca1d783ab44093c44db5ee401ff5b1d, removes
+an incorrect `Also=` directive from multipathd.service.
+
+`Also=multipathd.socket` is not the correct behavior for a
+socket-activated service. This directive has been removed upstream
+and dracut should do the same.
+
+This fixes #2289, #2175 where in the cleanup hook running multipath
+binary triggers activation of multipathd.service after it is stopped
+as dracut prepares to switch root in initrd-cleanup.service.
+---
+ modules.d/90multipath/module-setup.sh    | 1 -
+ modules.d/90multipath/multipathd.service | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/modules.d/90multipath/module-setup.sh b/modules.d/90multipath/module-setup.sh
+index 370cab92b..9c3e6295f 100755
+--- a/modules.d/90multipath/module-setup.sh
++++ b/modules.d/90multipath/module-setup.sh
+@@ -137,7 +137,6 @@ install() {
+             inst_simple "${moddir}/multipathd-configure.service" "${systemdsystemunitdir}/multipathd-configure.service"
+             $SYSTEMCTL -q --root "$initdir" enable multipathd-configure.service
+         fi
+-        inst_simple "${systemdsystemunitdir}/multipathd.socket"
+         inst_simple "${moddir}/multipathd.service" "${systemdsystemunitdir}/multipathd.service"
+         $SYSTEMCTL -q --root "$initdir" enable multipathd.service
+     else
+diff --git a/modules.d/90multipath/multipathd.service b/modules.d/90multipath/multipathd.service
+index e8182533d..1680cdfb3 100644
+--- a/modules.d/90multipath/multipathd.service
++++ b/modules.d/90multipath/multipathd.service
+@@ -25,4 +25,3 @@ TasksMax=infinity
+ 
+ [Install]
+ WantedBy=sysinit.target
+-Also=multipathd.socket

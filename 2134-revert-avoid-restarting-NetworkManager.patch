@@ -1,0 +1,38 @@
+From 5dc6aede4b99f1c76219370660b5b62e935a3cb8 Mon Sep 17 00:00:00 2001
+From: Lubomir Rintel <lkundrak@v3.sk>
+Date: Tue, 20 Dec 2022 13:06:43 +0100
+Subject: [PATCH] revert(network-manager): avoid restarting NetworkManager
+
+This reverts commit 77630365aed201a729c73a9ffda0733a75f3fee4.
+
+Its commit message states:
+
+  On EL8.3 the NetworkManager keep restarting even if it exits successfully
+  while waiting for Clevis to unlock. This patch ensures NetworkManager runs
+  only once in initrd.
+
+Yes; NetworkManager is run multiple times, so that it's able to
+configure interfaces that haven't been seen previously (because bus was
+slow to scan or device took time to initialize).
+
+It's not clear what problem was the original commit trying to fix.
+I suspect there was no problem, just a misunderstanding.
+---
+ modules.d/35network-manager/nm-run.sh | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/modules.d/35network-manager/nm-run.sh b/modules.d/35network-manager/nm-run.sh
+index 7d8d61fa7..14b9cb1ad 100755
+--- a/modules.d/35network-manager/nm-run.sh
++++ b/modules.d/35network-manager/nm-run.sh
+@@ -2,10 +2,6 @@
+ 
+ type source_hook > /dev/null 2>&1 || . /lib/dracut-lib.sh
+ 
+-if [ -e /tmp/nm.done ]; then
+-    return
+-fi
+-
+ if [ -z "$DRACUT_SYSTEMD" ]; then
+     # Only start NM if networking is needed
+     if [ -e /run/NetworkManager/initrd/neednet ]; then

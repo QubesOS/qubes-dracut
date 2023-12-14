@@ -1,0 +1,67 @@
+From f6810b69ae722096184eaaf282e12a2caa6928b9 Mon Sep 17 00:00:00 2001
+From: Dusty Mabe <dusty@dustymabe.com>
+Date: Tue, 21 Feb 2023 22:21:35 -0500
+Subject: [PATCH] feat(network): include 98-default-mac-none.link if it exists
+
+In Fedora Linux there was a new 98-default-mac-none.link file added
+to set the MACAddressPolicy=none for bond/bridge/team devices. We'd
+like for this policy to apply in the initramfs as well. See
+
+- https://fedoraproject.org/wiki/Changes/MAC_Address_Policy_none
+- https://src.fedoraproject.org/rpms/systemd/pull-request/100#
+---
+ modules.d/01systemd-networkd/module-setup.sh | 1 +
+ modules.d/35network-legacy/module-setup.sh   | 6 ++++--
+ modules.d/35network-manager/module-setup.sh  | 6 ++++--
+ 3 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/modules.d/01systemd-networkd/module-setup.sh b/modules.d/01systemd-networkd/module-setup.sh
+index 27d90101..46033549 100755
+--- a/modules.d/01systemd-networkd/module-setup.sh
++++ b/modules.d/01systemd-networkd/module-setup.sh
+@@ -44,6 +44,7 @@ install() {
+         "$systemdnetwork"/80-container-vz.network \
+         "$systemdnetwork"/80-vm-vt.network \
+         "$systemdnetwork"/80-wifi-adhoc.network \
++        "$systemdnetwork"/98-default-mac-none.link \
+         "$systemdnetwork"/99-default.link \
+         "$systemdsystemunitdir"/systemd-networkd.service \
+         "$systemdsystemunitdir"/systemd-networkd.socket \
+diff --git a/modules.d/35network-legacy/module-setup.sh b/modules.d/35network-legacy/module-setup.sh
+index 868ea8fc..a42f5797 100755
+--- a/modules.d/35network-legacy/module-setup.sh
++++ b/modules.d/35network-legacy/module-setup.sh
+@@ -23,9 +23,11 @@ installkernel() {
+ install() {
+     local _arch
+ 
+-    #Adding default link
++    # Adding default link and (if exists) 98-default-mac-none.link
+     if dracut_module_included "systemd"; then
+-        inst_multiple -o "${systemdnetwork}/99-default.link"
++        inst_multiple -o \
++            "${systemdnetwork}/99-default.link" \
++            "${systemdnetwork}/98-default-mac-none.link"
+         [[ $hostonly ]] && inst_multiple -H -o "${systemdnetworkconfdir}/*.link"
+     fi
+ 
+diff --git a/modules.d/35network-manager/module-setup.sh b/modules.d/35network-manager/module-setup.sh
+index c5d568f0..6e6cd6cf 100755
+--- a/modules.d/35network-manager/module-setup.sh
++++ b/modules.d/35network-manager/module-setup.sh
+@@ -51,8 +51,10 @@ install() {
+         inst_simple "$moddir"/nm-initrd.service "$systemdsystemunitdir"/nm-initrd.service
+         inst_simple "$moddir"/nm-wait-online-initrd.service "$systemdsystemunitdir"/nm-wait-online-initrd.service
+ 
+-        # Adding default link
+-        inst_multiple -o "${systemdnetwork}/99-default.link"
++        # Adding default link and (if exists) 98-default-mac-none.link
++        inst_multiple -o \
++            "${systemdnetwork}/99-default.link" \
++            "${systemdnetwork}/98-default-mac-none.link"
+         [[ $hostonly ]] && inst_multiple -H -o "${systemdnetworkconfdir}/*.link"
+ 
+         $SYSTEMCTL -q --root "$initdir" enable nm-initrd.service
+-- 
+2.39.2
+

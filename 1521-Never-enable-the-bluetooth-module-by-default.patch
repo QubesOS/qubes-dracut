@@ -1,0 +1,33 @@
+From ea8c9b1c4f39c52fc45788516dea19892cc275f7 Mon Sep 17 00:00:00 2001
+From: Adam Williamson <awilliam@redhat.com>
+Date: Thu, 10 Jun 2021 08:41:30 -0700
+Subject: [PATCH] Never enable the bluetooth module by default (#1521)
+
+Signed-off-by: Adam Williamson <awilliam@redhat.com>
+---
+ modules.d/62bluetooth/module-setup.sh | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/modules.d/62bluetooth/module-setup.sh b/modules.d/62bluetooth/module-setup.sh
+index b8270dd5..fd22670d 100755
+--- a/modules.d/62bluetooth/module-setup.sh
++++ b/modules.d/62bluetooth/module-setup.sh
+@@ -6,14 +6,7 @@
+ check() {
+     # If the binary(s) requirements are not fulfilled the module can't be installed
+     require_any_binary /usr/lib/bluetooth/bluetoothd /usr/libexec/bluetooth/bluetoothd || return 1
+-
+-    if [[ $hostonly ]]; then
+-        # Include by default if a Peripheral (0x500) is found of minor class:
+-        #  * Keyboard (0x40)
+-        #  * Keyboard/pointing (0xC0)
+-        grep -qiE 'Class=0x[0-9a-f]{3}5[4c]0' /var/lib/bluetooth/*/*/info 2> /dev/null && return 0
+-    fi
+-
++    # disabled until https://github.com/dracutdevs/dracut/issues/1521 is resolved
+     return 255
+ }
+ 
+-- 
+2.32.0.rc2
+
