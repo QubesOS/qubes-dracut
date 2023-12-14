@@ -14,7 +14,7 @@ BUILDER_DIR ?= ../..
 SRC_DIR ?= qubes-src
 
 SRC_URLS := \
-            http://www.kernel.org/pub/linux/utils/boot/dracut/dracut-$(VERSION).tar.xz \
+            https://www.kernel.org/pub/linux/utils/boot/dracut/dracut-$(VERSION).tar.xz \
             https://www.gnu.org/licenses/lgpl-2.1.txt \
 
 
