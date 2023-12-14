@@ -1,0 +1,10 @@
+host:
+  rpm:
+    build:
+    - dracut.spec
+source:
+  files:
+  - url: http://www.kernel.org/pub/linux/utils/boot/dracut/dracut-@VERSION@.tar.xz
+    sha512: dracut-@VERSION@.tar.xz.sha512
+  - url: https://www.gnu.org/licenses/lgpl-2.1.txt
+    sha512: lgpl-2.1.txt.sha512
