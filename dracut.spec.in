@@ -353,6 +353,7 @@ install -m 0755 51-dracut-rescue-postinst.sh $RPM_BUILD_ROOT%{_sysconfdir}/kerne
 %post
 # Fix missing microcode in initramfs
 for initrd in /boot/initramfs-*.img; do
+    [ -r "$initrd" ] || continue
     if ! cpio -t early_cpio < "$initrd" >/dev/null 2>&1; then
         kver="${initrd#/boot/initramfs-}"
         kver="${kver%.img}"
