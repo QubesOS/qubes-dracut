@@ -261,6 +261,7 @@ echo 'dracut_rescue_image="yes"' > $RPM_BUILD_ROOT%{dracutlibdir}/dracut.conf.d/
 %post
 # Fix missing microcode in initramfs
 for initrd in /boot/initramfs-*.img; do
+    [ -r "$initrd" ] || continue
     if ! cpio -t early_cpio < "$initrd" >/dev/null 2>&1; then
         kver="${initrd#/boot/initramfs-}"
         kver="${kver%.img}"
